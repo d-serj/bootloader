@@ -8,7 +8,7 @@ include(ProcessorCount)
 ProcessorCount(PROCESSORS_NUM)
 
 # Toolchain must come before first project
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/arm-gcc-toolchain.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake)
 
 set(CMAKE_ECLIPSE_MAKE_ARGUMENTS ${CMAKE_ECLIPSE_MAKE_ARGUMENTS} "--no-print-directory -j${PROCESSORS_NUM} -r -s" CACHE STRING "Make parameters")
 
@@ -55,7 +55,7 @@ set(BINARY_NAME ${TARGET_NAME}_${BINARY_NAME_SUFFIX}.bin)
 set(DEVICE_TYPE "SMO" CACHE INTERNAL "Type of the device")
 
 # Build main project
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH})
 
 include(ExternalProject)
 
