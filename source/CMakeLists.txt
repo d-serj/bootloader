@@ -4,6 +4,8 @@ project("application" C ASM)
 
 add_executable(${PROJECT_NAME} "")
 
+add_dependencies(${PROJECT_NAME} proj_libopencm3)
+
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
@@ -19,5 +21,5 @@ target_include_directories(
 target_link_libraries(
   ${PROJECT_NAME}
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/libopencm3/lib/libopencm3_stm32f1.a
-)
+  libopencm3
+)  
