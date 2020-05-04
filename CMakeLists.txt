@@ -10,8 +10,6 @@ ProcessorCount(PROCESSORS_NUM)
 # Toolchain must come before first project
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake)
 
-set(CMAKE_ECLIPSE_MAKE_ARGUMENTS ${CMAKE_ECLIPSE_MAKE_ARGUMENTS} "--no-print-directory -j${PROCESSORS_NUM} -r -s" CACHE STRING "Make parameters")
-
 set(TARGET_NAME "bootloader")
 
 project(${TARGET_NAME} C ASM)
@@ -36,31 +34,37 @@ elseif(CMAKE_BUILD_TYPE MATCHES Debug)
   set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Debug/libs)
 endif()
 
-message(STATUS "BUILD_TYPE:                 ${CMAKE_BUILD_TYPE}/${OPTIONS_UI_TYPE}")
+set(DEVICE stm32f103c8t6)
+
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F103C8Tx_FLASH.ld) # Must be set inside the libopencm3.cmake
+
+# TODO libopencm3
+
+
+# TODO move -g -gdwarf under the DEBUG checkif
+set(TARGET_COMPILE_OPTIONS "-mcpu=cortex-m3 -Og -mthumb -Wall -msoft-float -fdata-sections -ffunction-sections -g -gdwarf-4")
+add_definitions(-DSTM32F103xB)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-gc-sections -specs=nosys.specs -specs=nano.specs -T ${LINKER_SCRIPT}")
+
+message(STATUS "BUILD_TYPE:               " ${CMAKE_BUILD_TYPE})
 message(STATUS "TARGET_COMPILE_OPTIONS    " ${TARGET_COMPILE_OPTIONS})
 message(STATUS "TARGET_DEFINITION_OPRIONS " ${TARGET_DEFINITION_OPRIONS})
 message(STATUS "TARGET_LINK_OPTIONS       " ${TARGET_LINK_OPTIONS})
 
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
-# Configure binary name
-if (NOT OPTIONS_DEMO)
-  set(BINARY_NAME_SUFFIX "${OPTIONS_UI_TYPE}-${CMAKE_BUILD_TYPE}-${BUILD_NUMBER}")
-elseif(OPTIONS_DEMO)
-  set(BINARY_NAME_SUFFIX "${OPTIONS_UI_TYPE}-DEMO-${BUILD_NUMBER}")
-endif()
+set(BINARY_NAME ${TARGET_NAME}.bin)
 
-set(BINARY_NAME ${TARGET_NAME}_${BINARY_NAME_SUFFIX}.bin)
-
-set(DEVICE_TYPE "SMO" CACHE INTERNAL "Type of the device")
+add_library(libopencm3 STATIC IMPORTED)
+set_property(TARGET libopencm3 PROPERTY IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/libopencm3/lib/libopencm3_stm32f1.a)
 
 # Build main project
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH}/)
 
 include(ExternalProject)
 
 ExternalProject_Add(
-  libopencm3
+  proj_libopencm3
   SOURCE_DIR        ${CMAKE_SOURCE_DIR}/libopencm3
   BUILD_IN_SOURCE   TRUE
   CONFIGURE_COMMAND ""
