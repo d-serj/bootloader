@@ -58,16 +58,17 @@ set(BINARY_NAME ${TARGET_NAME}.bin)
 add_library(libopencm3 STATIC IMPORTED)
 set_property(TARGET libopencm3 PROPERTY IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/libopencm3/lib/libopencm3_stm32f1.a)
 
-# Build main project
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH}/)
-
 include(ExternalProject)
 
 ExternalProject_Add(
   proj_libopencm3
+  PREFIX            "${LIBRARY_OUTPUT_PATH}/"
   SOURCE_DIR        ${CMAKE_SOURCE_DIR}/libopencm3
   BUILD_IN_SOURCE   TRUE
   CONFIGURE_COMMAND ""
   INSTALL_COMMAND   ""
   BUILD_COMMAND     make TARGETS=stm32/f1 -j${PROCESSORS_NUM}
 )
+
+# Build main project
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH}/)
