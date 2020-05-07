@@ -53,3 +53,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Ninja
+.ninja_deps
+.ninja_log
+*.ninja
