@@ -4,8 +4,6 @@ project("application" C ASM)
 
 add_executable(${PROJECT_NAME} "")
 
-add_dependencies(${PROJECT_NAME} proj_libopencm3)
-
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
