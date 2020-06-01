@@ -8,6 +8,7 @@ cmake_minimum_required (VERSION 3.14)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake)
 
 set(TARGET_NAME "bootloader")
+set(DEVICE stm32f103c8t6)
 
 project(${TARGET_NAME} C ASM)
 
@@ -31,16 +32,14 @@ endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)   # Add selectable options to choose build type from CMake GUI
 mark_as_advanced(FORCE CMAKE_ECLIPSE_GENERATE_LINKED_RESOURCES)
 
-set(DEVICE stm32f103c8t6)
-
-set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F103C8Tx_FLASH.ld) # Must be set inside the libopencm3.cmake
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F103C8Tx_FLASH.ld)
 
 
 # TODO move -g -gdwarf under the DEBUG checkif
 set(TARGET_COMPILE_OPTIONS "-mcpu=cortex-m3 -Og -mthumb -Wall -msoft-float -fdata-sections -ffunction-sections -g -gdwarf-4")
 add_definitions(-DSTM32F103xB)
 add_definitions(-DSTM32F1)
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-gc-sections -specs=nosys.specs -specs=nano.specs -T ${LINKER_SCRIPT}")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-gc-sections -specs=nosys.specs -specs=nano.specs -Wl,--print-memory-usage")
 
 message(STATUS "BUILD_TYPE:               " ${CMAKE_BUILD_TYPE})
 message(STATUS "TARGET_COMPILE_OPTIONS    " ${TARGET_COMPILE_OPTIONS})
@@ -52,9 +51,8 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 set(BINARY_NAME ${TARGET_NAME}.bin)
 
 execute_process(
-  COMMAND           ${MAKE_EXE} TARGETS=stm32/f1
-  COMMAND           echo "Build libopencm3 library for stm32/f1"
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/libopencm3
+  COMMAND           make TARGETS=stm32/f1
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libopencm3
 )
 
 add_library(libopencm3 STATIC IMPORTED)
