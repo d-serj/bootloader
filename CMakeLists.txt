@@ -21,30 +21,45 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 # Build type
 if(CMAKE_BUILD_TYPE MATCHES Release)
-  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release)
-  set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/libs)
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Release)
+  set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Release/libs)
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug)
-  set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/libs)
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Debug)
+  set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Debug/libs)
 endif()
 
 # Cmake GUI settings
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)   # Add selectable options to choose build type from CMake GUI
 mark_as_advanced(FORCE CMAKE_ECLIPSE_GENERATE_LINKED_RESOURCES)
 
-set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F103C8Tx_FLASH.ld)
-
-
 # TODO move -g -gdwarf under the DEBUG checkif
-set(TARGET_COMPILE_OPTIONS "-mcpu=cortex-m3 -Og -mthumb -Wall -msoft-float -fdata-sections -ffunction-sections -g -gdwarf-4")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-m3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Og")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthumb")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msoft-float")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -gdwarf-4")
+
 add_definitions(-DSTM32F103xB)
 add_definitions(-DSTM32F1)
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-gc-sections -specs=nosys.specs -specs=nano.specs -Wl,--print-memory-usage")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "--specs=nosys.specs")
+set(CMAKE_EXE_LINKER_FLAGS "-nostartfiles -mthumb -mcpu=cortex-m3 -static -Wl,-gc-sections -specs=nano.specs -Wl,--print-memory-usage")
 
-message(STATUS "BUILD_TYPE:               " ${CMAKE_BUILD_TYPE})
-message(STATUS "TARGET_COMPILE_OPTIONS    " ${TARGET_COMPILE_OPTIONS})
-message(STATUS "TARGET_DEFINITION_OPRIONS " ${TARGET_DEFINITION_OPRIONS})
-message(STATUS "TARGET_LINK_OPTIONS       " ${TARGET_LINK_OPTIONS})
+# Linker script and .map file
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F1_FLASH.ld)
+add_link_options(
+  -L ${CMAKE_SOURCE_DIR}/libopencm3/lib
+  -Wl,-Map,${EXECUTABLE_OUTPUT_PATH}/${TARGET_NAME}.map
+  -T ${LINKER_SCRIPT}
+)
+
+message(STATUS "BUILD_TYPE:               :" ${CMAKE_BUILD_TYPE})
+message(STATUS "TARGET_COMPILE_OPTIONS    :" ${CMAKE_C_FLAGS})
+message(STATUS "TARGET_DEFINITION_OPTIONS :" ${CMAKE_C_FLAGS})
+message(STATUS "TARGET_LINK_OPTIONS       :" ${CMAKE_EXE_LINKER_FLAGS})
 
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
