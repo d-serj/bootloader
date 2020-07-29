@@ -5,7 +5,10 @@
 cmake_minimum_required (VERSION 3.14)
 
 # Toolchain must come before first project
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake
+  CACHE FILEPATH "CMake ARM GCC toolchain file" FORCE)
+
+set(CMAKE_BUILD_PARALLEL_LEVEL 8)
 
 set(TARGET_NAME "bootloader")
 set(DEVICE stm32f103c8t6)
@@ -21,32 +24,24 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 # Build type
 if(CMAKE_BUILD_TYPE MATCHES Release)
-  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Release)
-  set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Release/libs)
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/Release)
+  set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/Release/libs)
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Debug)
-  set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/Debug/libs)
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/Debug)
+  set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/Debug/libs)
 endif()
+
+# Clean entire build dir with global "clean" command
+set_directory_properties(
+  PROPERTIES
+  ADDITIONAL_CLEAN_FILES ${EXECUTABLE_OUTPUT_PATH}
+)
 
 # Cmake GUI settings
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)   # Add selectable options to choose build type from CMake GUI
-mark_as_advanced(FORCE CMAKE_ECLIPSE_GENERATE_LINKED_RESOURCES)
 
-# TODO move -g -gdwarf under the DEBUG checkif
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-m3")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Og")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthumb")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msoft-float")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -gdwarf-4")
-
-add_definitions(-DSTM32F103xB)
-add_definitions(-DSTM32F1)
-set(CMAKE_EXE_LINKER_FLAGS_INIT "--specs=nosys.specs")
-set(CMAKE_EXE_LINKER_FLAGS "-nostartfiles -mthumb -mcpu=cortex-m3 -static -Wl,-gc-sections -specs=nano.specs -Wl,--print-memory-usage")
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED YES)
 
 # Linker script and .map file
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F1_FLASH.ld)
@@ -57,13 +52,19 @@ add_link_options(
 )
 
 message(STATUS "BUILD_TYPE:               :" ${CMAKE_BUILD_TYPE})
-message(STATUS "TARGET_COMPILE_OPTIONS    :" ${CMAKE_C_FLAGS})
-message(STATUS "TARGET_DEFINITION_OPTIONS :" ${CMAKE_C_FLAGS})
-message(STATUS "TARGET_LINK_OPTIONS       :" ${CMAKE_EXE_LINKER_FLAGS})
+message(STATUS "TARGET_COMPILE_OPTIONS    :" ${TARGET_COMPILE_OPTIONS})
+message(STATUS "TARGET_DEFINITION_OPTIONS :" ${TARGET_COMPILE_OPTIONS})
+message(STATUS "TARGET_LINK_OPTIONS       :" ${TARGET_LINK_OPTIONS})
 
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
-
 set(BINARY_NAME ${TARGET_NAME}.bin)
+
+#
+# libopencm3
+#
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libopencm3)
+  message(FATAL_ERROR "Please, init libopencm3 submodule")
+endif()
 
 execute_process(
   COMMAND           make TARGETS=stm32/f1
@@ -74,4 +75,4 @@ add_library(libopencm3 STATIC IMPORTED)
 set_property(TARGET libopencm3 PROPERTY IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/libopencm3/lib/libopencm3_stm32f1.a)
 
 # Build main project
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH}/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH}/source)
