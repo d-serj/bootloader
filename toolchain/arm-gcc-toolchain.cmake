@@ -83,11 +83,12 @@ set(CMAKE_ASM_FLAGS ${CMAKE_ASM_FLAGS} "-x assembler-with-cpp")
 #--------------------
 # Linker flags
 #--------------------
-set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-nostdlib")
+set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-nostartfiles")
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-mthumb")
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-mcpu=cortex-m3")
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "--specs=nano.specs")
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-static")
+set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group)
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-Xlinker")
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "--gc-sections")
 set(TARGET_LINK_OPTIONS ${TARGET_LINK_OPTIONS} "-Wl,--cref")
