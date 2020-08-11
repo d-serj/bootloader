@@ -17,7 +17,7 @@ extern uint8_t u8_data_received;
 /**
  * @brief Initialize USART
  */
-void usart_init(void);
+void usart_setup(void);
 
 /**
  * @brief Deinitialize USART

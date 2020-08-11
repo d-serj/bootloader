@@ -20,7 +20,7 @@
 uint8_t u8_data[256]     = { 0 };
 uint8_t u8_data_received = 0;
 
-void usart_init(void)
+void usart_setup(void)
 {
   nvic_enable_irq(USART_IRQ);
 
@@ -67,7 +67,6 @@ void usart_send_string(const uint8_t *u8PL_str)
 #if (USART_NUMBER == USART2)
 void usart2_isr(void)
 {
-  volatile uint32_t u32L_tmp = 0;
   static uint16_t u16SL_idx  = 0;
 
   /* Check if we were called because of RXNE. */
@@ -90,6 +89,8 @@ void usart2_isr(void)
     && ((USART_SR(USART_NUMBER) & USART_SR_IDLE) != 0))
   {
     const uint16_t u16L_arr_size = ARRAY_SIZE(u8_data) - 1;
+    volatile uint32_t u32L_tmp   = 0;
+
     // Clear IDLE flag by reading status register first
     // And follow by reading data register
     u32L_tmp = USART_SR(USART_NUMBER);
