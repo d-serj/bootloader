@@ -8,8 +8,6 @@
 
 #include "delay.h"
 
-// Storage for our monotonic system clock.
-// Note that it needs to be volatile since we're modifying it from an interrupt.
 static volatile uint64_t u64S_millis = 0;
 
 void systick_setup(void)
@@ -45,5 +43,5 @@ void delay(uint64_t u64L_duration)
 void sys_tick_handler(void)
 {
   // Increment our monotonic clock
-  u64S_millis++;
+  ++u64S_millis;
 }
