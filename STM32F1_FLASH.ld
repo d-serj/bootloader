@@ -53,7 +53,19 @@
 MEMORY
 {
   ram (xrw)     : ORIGIN = 0x20000000, LENGTH = 20K
-  rom (rx)      : ORIGIN = 0x8000000, LENGTH = 16K
+  rom (rx)      : ORIGIN = 0x8000000, LENGTH = 0x0004000
+  header (rx)   : ORIGIN = 0x8004000, LENGTH = 0x0000100
+}
+
+__app_start = ORIGIN(header) + LENGTH(header);
+
+SECTIONS
+{
+  .image_hdr : {
+    __image_hdr_start = .;
+    KEEP (*(.image_hdr))
+    __image_hdr_end = .;
+  } > header
 }
 
 INCLUDE cortex-m-generic.ld
