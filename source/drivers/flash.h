@@ -1,6 +1,6 @@
 /**
  * @file flash.h
- * @brief 
+ * @brief flash driver. Header file
  * 
  */
 
