@@ -7,12 +7,22 @@ add_executable(${TARGET_NAME} "")
 target_sources(
   ${TARGET_NAME}
   PRIVATE
+  crc32.c
+  delay.c
   main.c
+  img-header.c
+  drivers/usart.c
+  drivers/spi.c
+  drivers/flash.c
+  #drivers/bkp.c
+  modem/sim800/sim800.c
+  #modem/sim800/at_command/at_command.c
 )
 
 target_include_directories(
   ${TARGET_NAME}
   PRIVATE
+  ${PROJECT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/libopencm3/include
 )
 
@@ -20,13 +30,6 @@ target_link_libraries(
   ${TARGET_NAME}
   PRIVATE
   libopencm3
-)
-
-# Linker script and .map file
-target_link_options(
-  ${TARGET_NAME} PRIVATE
-  -Wl,-Map,${EXECUTABLE_OUTPUT_PATH}/${TARGET_NAME}.map
-  -T ${CMAKE_SOURCE_DIR}/STM32F103C8Tx_FLASH.ld
 )
 
 # Show size of the output binary
