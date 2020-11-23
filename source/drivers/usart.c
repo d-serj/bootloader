@@ -87,6 +87,8 @@ void usart_setup(usart_instance_t *objPL_uart)
   /* Enable USART Receive interrupt. */
   USART_CR1(eL_uart_num) |= USART_CR1_RXNEIE;
 
+  usart_disable_tx_interrupt(eL_uart_num);
+
   /* Finally enable the USART. */
   usart_enable(eL_uart_num);
 }
