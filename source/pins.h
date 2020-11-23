@@ -28,4 +28,4 @@
 #define SIM800_DCD_Pin           GPIO2
 #define SIM800_DCD_GPIO_Port     GPIOB
 
-#endif /* SOURCE_PINS_H_ */
+#endif /* PINS_H_ */
