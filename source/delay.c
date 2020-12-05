@@ -25,6 +25,12 @@ void systick_setup(void)
   systick_counter_enable();
 }
 
+void systick_deinit(void)
+{
+  systick_interrupt_disable();
+  systick_counter_disable();
+}
+
 uint64_t millis(void)
 {
   return u64S_millis;

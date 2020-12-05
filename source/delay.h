@@ -13,6 +13,11 @@
 void systick_setup(void);
 
 /**
+ * @brief Deinit systick
+ */
+void systick_deinit(void);
+
+/**
  * @brief Get the current value of the millis counter
  * @return current value of the millis counter
  */

@@ -74,6 +74,8 @@ void usart_setup(usart_instance_t *objPL_uart)
     objPL_uart->u8P_data_received = &u8_uart4_data_received;
   }
 
+  objPL_uart->u16_rec_bytes = 0;
+
   /* Setup UART parameters. */
   usart_set_baudrate(eL_uart_num, 9600);
   usart_set_databits(eL_uart_num, 8);
@@ -211,7 +213,7 @@ void uart4_isr(void)
     // And follow by reading data register
     u32L_tmp = UART4_SR;
     u32L_tmp = UART4_DR;
-
+    
     u8_uart4_data[u16SL_idx] = '\0';
 
     u8_uart4_data_received = 1;
