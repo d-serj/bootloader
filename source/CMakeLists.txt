@@ -7,6 +7,7 @@ add_executable(${TARGET_NAME} "")
 target_sources(
   ${TARGET_NAME}
   PRIVATE
+  #bootloader.c
   crc32.c
   delay.c
   main.c
@@ -45,7 +46,7 @@ add_custom_command(
 add_custom_command(
   TARGET ${TARGET_NAME}
   POST_BUILD
-  COMMAND ${CMAKE_OBJCOPY} -v -O binary
+  COMMAND ${CMAKE_OBJCOPY} --pad-to=0x4000 --gap-fill=0xFF -v -O binary
   "${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}" "${BINARY_NAME}"
   COMMENT "\nGenerating binary file"
   WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
