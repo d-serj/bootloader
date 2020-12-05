@@ -21,11 +21,15 @@ uint32_t flash_program_data(uint32_t u32L_start_address,
 
   /* check if u32L_start_address is in proper range */
   if ((u32L_start_address - FLASH_BASE) >= (FLASH_PAGE_SIZE * (FLASH_PAGE_NUM_MAX + 1)))
+  {
     return 1;
+  }
 
   /* calculate current page address */
   if (u32L_start_address % FLASH_PAGE_SIZE)
+  {
     u32L_page_address -= (u32L_start_address % FLASH_PAGE_SIZE);
+  }
 
   flash_unlock();
 
@@ -33,7 +37,9 @@ uint32_t flash_program_data(uint32_t u32L_start_address,
   flash_erase_page(u32L_page_address);
   u32L_flash_status = flash_get_status_flags();
   if (u32L_flash_status != FLASH_SR_EOP)
+  {
     return u32L_flash_status;
+  }
 
   /* programming flash memory */
   for (uint16_t u16L_i = 0; u16L_i < u16L_num_elements; u16L_i += 4)
@@ -42,12 +48,18 @@ uint32_t flash_program_data(uint32_t u32L_start_address,
     flash_program_word(u32L_current_address + u16L_i, *((uint32_t*)(u8PL_input_data + u16L_i)));
     u32L_flash_status = flash_get_status_flags();
     if (u32L_flash_status != FLASH_SR_EOP)
+    {
       return u32L_flash_status;
+    }
 
     /* verify if correct data is programmed */
     if (*((uint32_t*)(u32L_current_address + u16L_i)) != *((uint32_t*)(u8PL_input_data + u16L_i)))
+    {
       return FLASH_WRONG_DATA_WRITTEN;
+    }
   }
+
+  flash_lock();
 
   return 0;
 }
