@@ -54,11 +54,35 @@ static void start_app(void *pc, void *sp) __attribute__((naked));
 
 static void start_app(void *pc, void *sp)
 {
-  __asm
-  ("           \n\
-        msr msp, r1 /* load r1 into MSP */\n\
-        bx r0       /* branch to the address at r0 */\n\
+  __asm volatile
+  ("                                             \n\
+    msr msp, r1 /* load r1 into MSP */           \n\
+    bx r0       /* branch to the address at r0 */\n\
   ");
+}
+
+static void image_start(const image_hdr_t* objPL_img)
+{
+  flash_program_data(0x8004000, objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
+
+  const vector_table_t *objPL_vector =
+    (const vector_table_t *)objPL_img->u32_vector_addr;
+
+  usart_deinit(&objS_usart2);
+  usart_deinit(&objS_uart4);
+  //systick_deinit();
+  //rcc_periph_clock_disable(RCC_GPIOC);
+  //rcc_periph_clock_disable(RCC_GPIOB);
+  //rcc_periph_clock_disable(RCC_GPIOA);
+
+  // Disable
+  __disable_irq();
+  SCB_VTOR = (uint32_t)objPL_vector;
+  __enable_irq();
+
+  start_app((void*)objPL_vector->reset, (void*)objPL_vector->initial_sp_value);
+
+  __builtin_unreachable();
 }
 
 int main(void)
@@ -75,26 +99,7 @@ int main(void)
     delay(100);
   }
 
-  image_hdr_t* objPL_img = (image_hdr_t*)objS_uart4.u8P_buffer;
-  
-  flash_program_data(0x8004000, objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
-
-  const vector_table_t *objPL_vector =
-    (const vector_table_t *)objPL_img->u32_vector_addr;
-
-  usart_deinit(&objS_usart2);
-  usart_deinit(&objS_uart4);
-  systick_deinit();
-  rcc_periph_clock_disable(RCC_GPIOC);
-  rcc_periph_clock_disable(RCC_GPIOB);
-  rcc_periph_clock_disable(RCC_GPIOA);
-
-  // Disable
-  __disable_irq();
-  SCB_VTOR = (uint32_t)objPL_vector;
-  __enable_irq(); 
-
-  start_app(objPL_vector->reset, objPL_vector->initial_sp_value);
+  image_start((const image_hdr_t*)objS_uart4.u8P_buffer);
 
 
   //sim800_power_on();
