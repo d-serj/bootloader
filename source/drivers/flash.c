@@ -8,7 +8,6 @@
 
 #include <libopencm3/stm32/flash.h>
 
-#define FLASH_OPERATION_ADDRESS ((uint32_t)0x0800f000)
 #define FLASH_PAGE_NUM_MAX       127
 #define FLASH_PAGE_SIZE          0x800
 #define FLASH_WRONG_DATA_WRITTEN 0x80
