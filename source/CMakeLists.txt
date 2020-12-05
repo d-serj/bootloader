@@ -13,10 +13,9 @@ target_sources(
   main.c
   img-header.c
   drivers/usart.c
-  drivers/spi.c
   drivers/flash.c
   #drivers/bkp.c
-  modem/sim800/sim800.c
+  #modem/sim800/sim800.c
   #modem/sim800/at_command/at_command.c
 )
 

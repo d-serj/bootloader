@@ -8,7 +8,7 @@
 
 #include "img-header.h"
 
-const image_hdr_t image_hdr __attribute__((section(".image_hdr"))) =
+const image_hdr_t image_hdr =
 {
   .u16_image_magic       = IMAGE_MAGIC,
   .u16_image_hdr_version = IMAGE_VERSION_CURRENT,

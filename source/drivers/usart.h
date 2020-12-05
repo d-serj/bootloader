@@ -23,8 +23,8 @@ typedef enum USART_INSTANCES uart_num_t;
 struct usart_instance
 {
   uint8_t *u8P_buffer;
+  uint16_t *u16P_rec_bytes;
   uint16_t u16_buff_size;
-  uint16_t u16_rec_bytes;
   volatile uint8_t *u8P_data_received;
   uart_num_t e_instance;
 };

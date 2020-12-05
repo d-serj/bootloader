@@ -23,8 +23,11 @@ static uint8_t u8_usart2_data[UART_RX_BUFFER_SIZE];
 static uint8_t u8_uart4_data[UART_RX_BUFFER_SIZE];
 
 /** RX buffer size */
-const uint16_t u16_usart2_data_arr_size = ARRAY_SIZE(u8_usart2_data);
-const uint16_t u16_uart4_data_arr_size  = ARRAY_SIZE(u8_uart4_data);
+const static uint16_t u16_usart2_data_arr_size = ARRAY_SIZE(u8_usart2_data);
+const static uint16_t u16_uart4_data_arr_size  = ARRAY_SIZE(u8_uart4_data);
+
+/** RX bytes received */
+static uint16_t u16S_uart4_num_rec = 0;
 
 /** Flag that indicates that data was received */
 volatile uint8_t u8_usart2_data_received;
@@ -36,6 +39,8 @@ void usart_setup(usart_instance_t *objPL_uart)
   assert(objPL_uart != NULL);
   const uart_num_t eL_uart_num = objPL_uart->e_instance;
   assert((eL_uart_num == eUART2) || (eL_uart_num == eUART4));
+
+  rcc_periph_clock_enable(RCC_AFIO);
 
   if (eL_uart_num == eUART2)
   {
@@ -54,6 +59,7 @@ void usart_setup(usart_instance_t *objPL_uart)
     objPL_uart->u8P_buffer        = u8_usart2_data;
     objPL_uart->u16_buff_size     = u16_usart2_data_arr_size;
     objPL_uart->u8P_data_received = &u8_usart2_data_received;
+    objPL_uart->u16P_rec_bytes    = NULL;
   }
   else if (eL_uart_num == eUART4)
   {
@@ -72,9 +78,8 @@ void usart_setup(usart_instance_t *objPL_uart)
     objPL_uart->u8P_buffer        = u8_uart4_data;
     objPL_uart->u16_buff_size     = u16_uart4_data_arr_size;
     objPL_uart->u8P_data_received = &u8_uart4_data_received;
+    objPL_uart->u16P_rec_bytes    = &u16S_uart4_num_rec;
   }
-
-  objPL_uart->u16_rec_bytes = 0;
 
   /* Setup UART parameters. */
   usart_set_baudrate(eL_uart_num, 9600);
@@ -103,12 +108,15 @@ void usart_deinit(usart_instance_t *objPL_uart)
   if (eL_uart_num == eUART2)
   {
     nvic_disable_irq(NVIC_USART2_IRQ);
+    rcc_periph_clock_disable(RCC_USART2);
   }
   else if (eL_uart_num == eUART4)
   {
     nvic_disable_irq(NVIC_UART4_IRQ);
+    rcc_periph_clock_disable(RCC_UART4);
   }
 
+  rcc_periph_clock_disable(RCC_AFIO);
   usart_disable(eL_uart_num);
 }
 
@@ -214,6 +222,7 @@ void uart4_isr(void)
     u32L_tmp = UART4_SR;
     u32L_tmp = UART4_DR;
     
+    u16S_uart4_num_rec = u16SL_idx - 1;
     u8_uart4_data[u16SL_idx] = '\0';
 
     u8_uart4_data_received = 1;

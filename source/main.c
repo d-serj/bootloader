@@ -9,15 +9,17 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/vector.h>
+#include <libopencm3/cm3/scb.h>
+#include <libopencmsis/core_cm3.h>
 
 #include "img-header.h"
 #include "drivers/usart.h"
-#include "drivers/spi.h"
 #include "drivers/flash.h"
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
-#include "bootloader.h"
+
+#include "../STM32F1_FLASH.h"
 
 static usart_instance_t objS_usart2 = { .e_instance = eUART2 };
 static usart_instance_t objS_uart4  = { .e_instance = eUART4 };
@@ -69,24 +71,29 @@ int main(void)
 
   while (*objS_uart4.u8P_data_received == 0)
   {
-    delay(1);
+    gpio_toggle(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
+    delay(100);
   }
 
   image_hdr_t* objPL_img = (image_hdr_t*)objS_uart4.u8P_buffer;
   
-  usart_deinit(&objS_usart2);
-  usart_deinit(&objS_uart4);
-  systick_deinit();
-
-  if (objPL_img->u16_image_magic == IMAGE_MAGIC)
-  {
-    gpio_set(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
-  }
-  
-  flash_program_data(objPL_img->u32_vector_addr, objS_uart4.u8P_buffer, objS_uart4.u16_rec_bytes);
+  flash_program_data(0x8004000, objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
 
   const vector_table_t *objPL_vector =
     (const vector_table_t *)objPL_img->u32_vector_addr;
+
+  usart_deinit(&objS_usart2);
+  usart_deinit(&objS_uart4);
+  systick_deinit();
+  rcc_periph_clock_disable(RCC_GPIOC);
+  rcc_periph_clock_disable(RCC_GPIOB);
+  rcc_periph_clock_disable(RCC_GPIOA);
+
+  // Disable
+  __disable_irq();
+  SCB_VTOR = (uint32_t)objPL_vector;
+  __enable_irq(); 
+
   start_app(objPL_vector->reset, objPL_vector->initial_sp_value);
 
 
