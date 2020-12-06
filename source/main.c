@@ -18,8 +18,7 @@
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
-
-#include "../STM32F1_FLASH.h"
+#include "memory_map.h"
 
 static usart_instance_t objS_usart2 = { .e_instance = eUART2 };
 static usart_instance_t objS_uart4  = { .e_instance = eUART4 };
@@ -57,31 +56,38 @@ static void start_app(void *pc, void *sp)
   __asm volatile
   ("                                             \n\
     msr msp, r1 /* load r1 into MSP */           \n\
-    bx r0       /* branch to the address at r0 */\n\
   ");
+}
+
+static inline void __set_MSP(volatile uint32_t topOfMainStack) {
+    //  Set the stack pointer.
+    asm("msr msp, %0" : : "r" (topOfMainStack));
 }
 
 static void image_start(const image_hdr_t* objPL_img)
 {
-  flash_program_data(0x8004000, objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
+  flash_program_data((uint32_t)&__app_start__, objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
 
   const vector_table_t *objPL_vector =
     (const vector_table_t *)objPL_img->u32_vector_addr;
 
   usart_deinit(&objS_usart2);
   usart_deinit(&objS_uart4);
-  //systick_deinit();
-  //rcc_periph_clock_disable(RCC_GPIOC);
-  //rcc_periph_clock_disable(RCC_GPIOB);
-  //rcc_periph_clock_disable(RCC_GPIOA);
+  systick_deinit();
+  rcc_periph_clock_disable(RCC_GPIOC);
+  rcc_periph_clock_disable(RCC_GPIOB);
+  rcc_periph_clock_disable(RCC_GPIOA);
 
   // Disable
   __disable_irq();
-  SCB_VTOR = (uint32_t)objPL_vector;
+  asm("dmb");
+  SCB_VTOR = (uint32_t)objPL_vector & 0xFFFFFFF8;
+  asm("dsb");
   __enable_irq();
 
-  start_app((void*)objPL_vector->reset, (void*)objPL_vector->initial_sp_value);
-
+  __set_MSP((volatile uint32_t)objPL_vector->initial_sp_value);
+    // Call the reset handler (the construct below is 'pointer to a pointer to a function that takes no arguments and returns void')
+  (*(void (**)())(0x8004200 + 4))();
   __builtin_unreachable();
 }
 
@@ -99,7 +105,7 @@ int main(void)
     delay(100);
   }
 
-  image_start((const image_hdr_t*)objS_uart4.u8P_buffer);
+  image_start((const image_hdr_t*)&__app_start__);
 
 
   //sim800_power_on();
