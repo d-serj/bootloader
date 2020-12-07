@@ -7,7 +7,7 @@ add_executable(${TARGET_NAME} "")
 target_sources(
   ${TARGET_NAME}
   PRIVATE
-  #bootloader.c
+  bootloader.c
   crc32.c
   delay.c
   main.c
