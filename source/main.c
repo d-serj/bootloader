@@ -9,23 +9,20 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/vector.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencmsis/core_cm3.h>
 
+#include "bootloader.h"
 #include "img-header.h"
 #include "drivers/usart.h"
-#include "drivers/flash.h"
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
-#include "memory_map.h"
 
 static usart_instance_t objS_usart2 = { .e_instance = eUART2 };
 static usart_instance_t objS_uart4  = { .e_instance = eUART4 };
 
 static void clock_setup(void)
 {
-  rcc_clock_setup_in_hsi_out_64mhz();
+  rcc_clock_setup_in_hsi_out_24mhz();
 
   /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
@@ -49,48 +46,6 @@ static void gpio_setup(void)
     GPIO_CNF_INPUT_FLOAT, GSM_STATUS_Pin);
 }
 
-static void start_app(void *pc, void *sp) __attribute__((naked));
-
-static void start_app(void *pc, void *sp)
-{
-  __asm volatile
-  ("                                             \n\
-    msr msp, r1 /* load r1 into MSP */           \n\
-  ");
-}
-
-static inline void __set_MSP(volatile uint32_t topOfMainStack) {
-    //  Set the stack pointer.
-    asm("msr msp, %0" : : "r" (topOfMainStack));
-}
-
-static void image_start(const image_hdr_t* objPL_img)
-{
-  flash_program_data((uint32_t)&__app_start__, objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
-
-  const vector_table_t *objPL_vector =
-    (const vector_table_t *)objPL_img->u32_vector_addr;
-
-  usart_deinit(&objS_usart2);
-  usart_deinit(&objS_uart4);
-  systick_deinit();
-  rcc_periph_clock_disable(RCC_GPIOC);
-  rcc_periph_clock_disable(RCC_GPIOB);
-  rcc_periph_clock_disable(RCC_GPIOA);
-
-  // Disable
-  __disable_irq();
-  asm("dmb");
-  SCB_VTOR = (uint32_t)objPL_vector & 0xFFFFFFF8;
-  asm("dsb");
-  __enable_irq();
-
-  __set_MSP((volatile uint32_t)objPL_vector->initial_sp_value);
-    // Call the reset handler (the construct below is 'pointer to a pointer to a function that takes no arguments and returns void')
-  (*(void (**)())(0x8004200 + 4))();
-  __builtin_unreachable();
-}
-
 int main(void)
 {
   clock_setup();
@@ -105,7 +60,20 @@ int main(void)
     delay(100);
   }
 
-  image_start((const image_hdr_t*)&__app_start__);
+  usart_deinit(&objS_uart4);
+  systick_deinit();
+  rcc_periph_clock_disable(RCC_GPIOC);
+  rcc_periph_clock_disable(RCC_GPIOB);
+  rcc_periph_clock_disable(RCC_GPIOA);
+  rcc_osc_off(RCC_HSI);
+
+  // 1. Check flags
+  // 2. Load app or go to update
+  // 3. Get image
+  // 4. Image validate
+  // 5. Image flash
+  // 6. Image start
+  image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
 
 
   //sim800_power_on();
