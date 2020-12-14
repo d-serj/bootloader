@@ -12,6 +12,7 @@ target_sources(
   delay.c
   main.c
   img-header.c
+  image.c
   drivers/usart.c
   drivers/flash.c
   #drivers/bkp.c
