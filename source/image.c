@@ -9,29 +9,34 @@
 #include <stddef.h>
 
 #include "crc32.h"
-#include "img-header.h"
 
 #include "image.h"
 
 
-static inline bool image_check_header(const image_hdr_t *objPL_img);
-static bool image_check_crc32(const image_hdr_t *objPL_img);
+static image_hdr_t objL_image_header = { 0 };
+
+static uint32_t image_calc_crc32(const image_part_t *objPL_img_part);
 
 
-bool image_validare(const image_hdr_t *objPL_img)
+const image_hdr_t *image_header_get(void)
 {
-  assert(objPL_img != NULL);
-
-  return (image_check_header(objPL_img) == false)
-    && image_check_crc32(objPL_img);
+  // Get image header from SIM800
+  // memcpy image header to objL_image_header
+  return &objL_image_header;
 }
 
-static inline bool image_check_header(const image_hdr_t *objPL_img)
+bool image_validate(image_part_t *objPL_img_part)
 {
-  return (objPL_img->u16_image_magic == IMAGE_MAGIC);
+  assert(objPL_img_part != NULL);
+
+  objPL_img_part->u32_crc32 = image_calc_crc32(objPL_img_part);
+
+  return true;
 }
 
-static bool image_check_crc32(const image_hdr_t *objPL_img)
+static uint32_t image_calc_crc32(const image_part_t *objPL_img_part)
 {
-  
+  return crc32(objPL_img_part->u8P_data,
+    objPL_img_part->u32_data_size,
+    objPL_img_part->u32_crc32);
 }

@@ -10,6 +10,6 @@
 
 #include <stdint.h>
 
-uint32_t crc32(const void *data, uint32_t n_bytes);
+uint32_t crc32(const void *data, size_t n_bytes, uint32_t crc_in);
 
 #endif /* CRC32_H_ */

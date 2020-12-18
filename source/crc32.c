@@ -2,10 +2,11 @@
  * @file crc32.c
  */
 
-#include "crc32.h"
-
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+#include "crc32.h"
 
 #define CRC32_POLYNOME  (0xEDB88320L)
 
@@ -16,10 +17,12 @@ static uint32_t crc32_for_byte(uint32_t r)
   return r ^ (uint32_t)0xFF000000L;
 }
 
-uint32_t crc32(const void *data, uint32_t n_bytes)
+uint32_t crc32(const void *data, size_t n_bytes, uint32_t crc_in)
 {
-  uint32_t crc = 0;
   static uint32_t table[0x100];
+  uint32_t crc = crc_in;
+
+  assert(data != NULL);
 
   if(!*table)
     for(size_t i = 0; i < 0x100; ++i)

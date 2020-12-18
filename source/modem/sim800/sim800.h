@@ -5,6 +5,8 @@
 #ifndef SIM800_SIM800_H_
 #define SIM800_SIM800_H_
 
+#include <stdbool.h>
+
 /**
  * @brief Power on SIM800 module
  * @note  For more information about turn on/off timings see "SIM800_Hardware Design_V1.09" page 22

@@ -9,7 +9,7 @@
 #include <pins.h>
 #include <delay.h>
 
-#include "at_command/at_command.h"
+#include <modem/at_command/at_command.h>
 
 static at_command_t objS_at_cmd = { 0 };
 

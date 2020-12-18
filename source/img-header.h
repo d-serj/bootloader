@@ -29,5 +29,11 @@ typedef struct __attribute__((packed))
   char     cP_git_sha[8];         ///< Git SHA
 } image_hdr_t;
 
+inline bool image_header_check(const image_hdr_t *objPL_img_hdr)
+{
+  return (objPL_img_hdr->u16_image_magic == IMAGE_MAGIC);
+}
+
+const image_hdr_t *image_header_get(void);
 
 #endif // IMG_HEADER_H_

@@ -11,13 +11,13 @@ target_sources(
   crc32.c
   delay.c
   main.c
-  img-header.c
   image.c
   drivers/usart.c
   drivers/flash.c
   #drivers/bkp.c
-  #modem/sim800/sim800.c
-  #modem/sim800/at_command/at_command.c
+  modem/modem.c
+  modem/sim800/sim800.c
+  #modem/at_command/at_command.c
 )
 
 target_include_directories(

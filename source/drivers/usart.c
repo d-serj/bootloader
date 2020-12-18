@@ -222,10 +222,12 @@ void uart4_isr(void)
     u32L_tmp = UART4_SR;
     u32L_tmp = UART4_DR;
     
-    u16S_uart4_num_rec = u16SL_idx - 1;
-    u8_uart4_data[u16SL_idx] = '\0';
+    if (u16SL_idx > 1)
+    {
+      u16S_uart4_num_rec     = u16SL_idx - 1;
+      u8_uart4_data_received = 1;
+    }
 
-    u8_uart4_data_received = 1;
-    u16SL_idx              = 0;
+    u16SL_idx = 0;
   }
 }

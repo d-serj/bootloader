@@ -56,9 +56,7 @@ MEMORY
   rom (rx)      : ORIGIN = 0x8000000, LENGTH = 0x0004000
 }
 
-
 __app_start__ = ORIGIN(rom) + LENGTH(rom);
-
 
 INCLUDE cortex-m-generic.ld
 

@@ -69,16 +69,14 @@ int main(void)
 
   // 1. Check flags
   // 2. Load app or go to update
-  // 3. Get image
-  // 4. Image validate
-  // 5. Image flash
+  // 3. Get image header
+  // 4. Image validate header
+  // 5. Check CRC32 for the whole file
+  // 6. Download image from the beginning to flash it
+  // 7. Image flash
+  // 8. Check CRC32
   // 6. Image start
   image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
-
-
-  //sim800_power_on();
-  //delay(2000);
-  //sim800_power_off();
   
   for(;;);
 

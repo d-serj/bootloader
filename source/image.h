@@ -10,13 +10,14 @@
 
 #include "img-header.h"
 
-struct Image
+struct Image_part
 {
-  const image_hdr_t *objP_img_hdr;
   const uint8_t *u8P_data;
+  uint32_t u32_data_size;
+  uint32_t u32_crc32;
 };
-typedef struct Image image_t;
+typedef struct Image_part image_part_t;
 
-bool image_validate(const image_t *objPL_img);
+bool image_validate(image_part_t *objPL_img);
 
 #endif // IMAGE_H_
