@@ -6,18 +6,13 @@
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #include "img-header.h"
 
-struct Image_part
-{
-  const uint8_t *u8P_data;
-  uint32_t u32_data_size;
-  uint32_t u32_crc32;
-};
-typedef struct Image_part image_part_t;
+const image_hdr_t image_header_get(void);
 
-bool image_validate(image_part_t *objPL_img);
+bool image_validate(const image_hdr_t *objPL_hdr);
 
 #endif // IMAGE_H_
