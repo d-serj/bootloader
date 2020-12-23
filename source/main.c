@@ -16,6 +16,7 @@
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
+#include "image.h"
 
 static usart_instance_t objS_usart2 = { .e_instance = eUART2 };
 static usart_instance_t objS_uart4  = { .e_instance = eUART4 };
@@ -76,7 +77,9 @@ int main(void)
   // 7. Image flash
   // 8. Check CRC32
   // 6. Image start
-  image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
+  //image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
+  const image_hdr_t objL_hdr = image_header_get();
+  image_validate(&objL_hdr);
   
   for(;;);
 

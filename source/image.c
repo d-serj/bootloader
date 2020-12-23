@@ -12,11 +12,20 @@
 #include <modem/modem.h>
 
 #include "crc32.h"
+#include "firmware.h"
 
+#include "img-header.h"
 #include "image.h"
 
-static uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size);
+static const uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size);
 
+static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
+
+static inline bool image_header_check(const image_hdr_t *objPL_img_hdr)
+{
+  return ((objPL_img_hdr->u16_image_magic == IMAGE_MAGIC)
+    && (objPL_img_hdr->u16_image_hdr_version == IMAGE_VERSION_CURRENT));
+}
 
 const image_hdr_t image_header_get(void)
 {
@@ -56,13 +65,22 @@ bool image_validate(const image_hdr_t *objPL_hdr)
 
     u32L_file_crc32 = crc32((const void*)u8PL_chunk, u32L_size_to_get, u32L_file_crc32);
 
+    u32L_download_pos    += u32L_size_to_get;
     u32L_remaining_bytes -= u32L_size_to_get;
   }
 
   return (u32L_file_crc32 == objPL_hdr->u32_crc);
 }
 
-uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size)
+const uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size)
 {
-  return NULL; 
+  assert(u32L_chunk_addr < u32_firmware_size);
+  assert(u32L_chunk_size < (u32_firmware_size - u32L_chunk_addr));
+
+  return &u8P_firmware_bin[u32L_chunk_addr];
+}
+
+uint32_t image_get_size(void)
+{
+  return 0;
 }
