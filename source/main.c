@@ -54,12 +54,13 @@ int main(void)
   gpio_setup();
   usart_setup(&objS_usart2);
   usart_setup(&objS_uart4);
-
+/*
   while (*objS_uart4.u8P_data_received == 0)
   {
     gpio_toggle(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
     delay(100);
   }
+  */
 
   usart_deinit(&objS_uart4);
   systick_deinit();

@@ -18,8 +18,8 @@
 #include "image.h"
 
 static const uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size);
-
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
+static uint32_t image_get_size(void);
 
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr)
 {
@@ -40,8 +40,13 @@ const image_hdr_t image_header_get(void)
 bool image_validate(const image_hdr_t *objPL_hdr)
 {
   assert(objPL_hdr != NULL);
-
+  // Validate header
   if (image_header_check(objPL_hdr) == false)
+  {
+    return false;
+  }
+  // Compare stored in the header image size with size stored in memory
+  if (image_get_size() != objPL_hdr->u32_data_size)
   {
     return false;
   }
@@ -49,13 +54,13 @@ bool image_validate(const image_hdr_t *objPL_hdr)
   const uint32_t u32L_chunk_size = 256u;
   uint32_t u32L_file_crc32       = 0;
   uint32_t u32L_remaining_bytes  = objPL_hdr->u32_data_size;
-  uint32_t u32L_download_pos     = 0;
+  // Skip header since it is already downloaded
+  uint32_t u32L_download_pos     = sizeof(image_hdr_t);
 
   while (u32L_remaining_bytes > 0)
   {
     const uint32_t u32L_size_to_get =
       (u32L_remaining_bytes > u32L_chunk_size) ? u32L_chunk_size : u32L_remaining_bytes;
-      /// TODO odd length
     const uint8_t *u8PL_chunk = image_get_chunk(u32L_download_pos, u32L_size_to_get);
 
     if (u8PL_chunk == NULL)
@@ -75,12 +80,13 @@ bool image_validate(const image_hdr_t *objPL_hdr)
 const uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size)
 {
   assert(u32L_chunk_addr < u32_firmware_size);
-  assert(u32L_chunk_size < (u32_firmware_size - u32L_chunk_addr));
+  assert(u32L_chunk_size <= (u32_firmware_size - u32L_chunk_addr));
 
   return &u8P_firmware_bin[u32L_chunk_addr];
 }
 
 uint32_t image_get_size(void)
 {
-  return 0;
+  // TMP
+  return u32_firmware_size - sizeof(image_hdr_t);
 }
