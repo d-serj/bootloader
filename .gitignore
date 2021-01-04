@@ -2,6 +2,7 @@
 /build/
 /Release/
 /Debug/
+/test/build/
 
 # Prerequisites
 *.d
@@ -76,6 +77,7 @@ _deps
 
 # Visual studio code
 .vscode/
+/test/.vscode
 
 #
 # Eclipse
