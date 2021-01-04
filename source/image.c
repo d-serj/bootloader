@@ -12,12 +12,12 @@
 #include <modem/modem.h>
 
 #include "crc32.h"
-#include "firmware.h"
 
 #include "img-header.h"
 #include "image.h"
+#include "storage.h"
 
-static const uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size);
+void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size);
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
 static uint32_t image_get_size(void);
 
@@ -30,9 +30,10 @@ static inline bool image_header_check(const image_hdr_t *objPL_img_hdr)
 const image_hdr_t image_header_get(void)
 {
   // Get image header from SIM800
-  image_hdr_t objL_image_header = { 0 };
-  const uint8_t* u8PL_hdr = image_get_chunk(0, sizeof(image_hdr_t));
-  memcpy(&objL_image_header, u8PL_hdr, sizeof(image_hdr_t));
+  image_hdr_t objL_image_header          = { 0 };
+  uint8_t u8PL_buff[sizeof(image_hdr_t)] = { 0 };
+  image_get_chunk(0, u8PL_buff, sizeof(image_hdr_t));
+  memcpy(&objL_image_header, u8PL_buff, sizeof(image_hdr_t));
 
   return objL_image_header;
 }
@@ -61,12 +62,9 @@ bool image_validate(const image_hdr_t *objPL_hdr)
   {
     const uint32_t u32L_size_to_get =
       (u32L_remaining_bytes > u32L_chunk_size) ? u32L_chunk_size : u32L_remaining_bytes;
-    const uint8_t *u8PL_chunk = image_get_chunk(u32L_download_pos, u32L_size_to_get);
-
-    if (u8PL_chunk == NULL)
-    {
-      break;
-    }
+    uint8_t u8PL_chunk[u32L_size_to_get];
+    memset(u8PL_chunk, 0, u32L_size_to_get);
+    image_get_chunk(u32L_download_pos, u8PL_chunk, u32L_size_to_get);
 
     u32L_file_crc32 = crc32((const void*)u8PL_chunk, u32L_size_to_get, u32L_file_crc32);
 
@@ -77,16 +75,20 @@ bool image_validate(const image_hdr_t *objPL_hdr)
   return (u32L_file_crc32 == objPL_hdr->u32_crc);
 }
 
-const uint8_t *image_get_chunk(uint32_t u32L_chunk_addr, uint32_t u32L_chunk_size)
+void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size)
 {
-  assert(u32L_chunk_addr < u32_firmware_size);
-  assert(u32L_chunk_size <= (u32_firmware_size - u32L_chunk_addr));
+  assert(u8PL_chunk_buf != NULL);
 
-  return &u8P_firmware_bin[u32L_chunk_addr];
+  storage_get_chunk(NULL, u32L_chunk_addr, u8PL_chunk_buf, u32L_chunk_size);
 }
 
 uint32_t image_get_size(void)
 {
   // TMP
-  return u32_firmware_size - sizeof(image_hdr_t);
+  return storage_get_file_size(NULL);
+}
+
+uint32_t image_test(uint16_t u16L_a, uint16_t u16L_b)
+{
+  return u16L_a + u16L_b;
 }

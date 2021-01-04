@@ -13,6 +13,7 @@ target_sources(
   main.c
   image.c
   firmware.c
+  storage.c
   drivers/usart.c
   drivers/flash.c
   #drivers/bkp.c

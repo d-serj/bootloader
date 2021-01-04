@@ -15,4 +15,6 @@ const image_hdr_t image_header_get(void);
 
 bool image_validate(const image_hdr_t *objPL_hdr);
 
+uint32_t image_test(uint16_t u16L_a, uint16_t u16L_b);
+
 #endif // IMAGE_H_
