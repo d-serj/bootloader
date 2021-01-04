@@ -76,3 +76,22 @@ set_property(TARGET libopencm3 PROPERTY IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/li
 
 # Build main project
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source ${EXECUTABLE_OUTPUT_PATH}/source)
+
+include(ExternalProject)
+
+ExternalProject_Add(
+  unit_tests
+  PREFIX            ${CMAKE_SOURCE_DIR}/test
+  SOURCE_DIR        ${CMAKE_SOURCE_DIR}/test/build
+  BINARY_DIR        ${CMAKE_SOURCE_DIR}/test/build
+  STAMP_DIR         ${CMAKE_SOURCE_DIR}/test/build
+  TMP_DIR           ${CMAKE_SOURCE_DIR}/test/build
+  DOWNLOAD_COMMAND  ""
+  PATCH_COMMAND     ""
+  INSTALL_COMMAND   ""
+  UPDATE_COMMAND    ""
+  CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -S ${CMAKE_SOURCE_DIR}/test -G ${CMAKE_GENERATOR}
+  BUILD_ALWAYS      TRUE
+  ALWAYS            TRUE
+  DEPENDS           ${TARGET_NAME}
+)
