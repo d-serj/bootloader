@@ -2,12 +2,18 @@
 
 /*=======Automagically Detected Files To Include=====*/
 #include "unity.h"
+#include "TestImage.h"
+#include <assert.h>
+#include <string.h>
 #include <image.h>
+#include <firmware.h>
 
 /*=======External Functions This Runner Calls=====*/
 extern void setUp(void);
 extern void tearDown(void);
-extern void test_ImageTest(void);
+extern void test_ImageImageSize(void);
+extern void test_ImageHeaderCheck(void);
+extern void test_ImageValidateTest(void);
 
 
 /*=======Mock Management=====*/
@@ -69,7 +75,9 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 int main(void)
 {
   UnityBegin("C:/Home/Project/bootloader/test/tests/TestImage.c");
-  run_test(test_ImageTest, "test_ImageTest", 20);
+  run_test(test_ImageImageSize, "test_ImageImageSize", 38);
+  run_test(test_ImageHeaderCheck, "test_ImageHeaderCheck", 45);
+  run_test(test_ImageValidateTest, "test_ImageValidateTest", 52);
 
   return UnityEnd();
 }

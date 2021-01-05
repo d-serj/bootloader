@@ -41,12 +41,10 @@ set(MAIN_PROJ_SOURCES
   ${MAIN_PROJ_PATH}/image.c
   ${MAIN_PROJ_PATH}/crc32.c
   ${MAIN_PROJ_PATH}/firmware.c
-  ${MAIN_PROJ_PATH}/storage.c
 )
   
 set(UNIT_TEST_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestImage.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestStorage.c
 )
 
 set(INCLUDES_PATH
@@ -75,6 +73,7 @@ macro(add_test_executable FILENAME)
   )
   target_link_libraries(${FILENAME} PRIVATE unity)
   target_include_directories(${FILENAME} PRIVATE ${INCLUDES_PATH})
+  target_compile_definitions(${FILENAME} PRIVATE UTEST)
   target_compile_options(${FILENAME} PRIVATE -O0 -g3)
   add_test(NAME ${FILENAME} COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/${FILENAME})
 
