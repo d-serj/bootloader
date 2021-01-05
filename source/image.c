@@ -17,11 +17,17 @@
 #include "image.h"
 #include "storage.h"
 
-void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size);
+#ifndef UTEST
+static void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size);
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
 static uint32_t image_get_size(void);
+#else
+void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size);
+bool image_header_check(const image_hdr_t *objPL_img_hdr);
+uint32_t image_get_size(void);
+#endif // UTEST
 
-static inline bool image_header_check(const image_hdr_t *objPL_img_hdr)
+bool image_header_check(const image_hdr_t *objPL_img_hdr)
 {
   return ((objPL_img_hdr->u16_image_magic == IMAGE_MAGIC)
     && (objPL_img_hdr->u16_image_hdr_version == IMAGE_VERSION_CURRENT));
@@ -86,9 +92,4 @@ uint32_t image_get_size(void)
 {
   // TMP
   return storage_get_file_size(NULL);
-}
-
-uint32_t image_test(uint16_t u16L_a, uint16_t u16L_b)
-{
-  return u16L_a + u16L_b;
 }
