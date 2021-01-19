@@ -18,6 +18,8 @@ jobs:
     
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        submodules: true
     
     - name: Configure build environment
       run: sudo apt-get install build-essential
