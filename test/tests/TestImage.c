@@ -24,7 +24,7 @@ void tearDown(void)
 
 uint32_t storage_get_file_size(const char* cPL_file_name)
 {
-  return u32_firmware_size;
+  return u32_firmware_size - sizeof(image_hdr_t);
 }
 
 void storage_get_chunk(const char *cPL_file_name, uint32_t u32L_chunk_addr, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size)
@@ -39,7 +39,7 @@ void test_ImageImageSize(void)
 {
   const image_hdr_t objL_hdr = image_header_get();
   /* All of these should pass */
-  TEST_ASSERT_EQUAL(image_get_size() - sizeof(image_hdr_t), objL_hdr.u32_data_size);
+  TEST_ASSERT_EQUAL(image_get_size(), objL_hdr.u32_data_size);
 }
 
 void test_ImageHeaderCheck(void)
