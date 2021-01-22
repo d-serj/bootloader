@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "img-header.h"
 #include "firmware.h"
 #include "storage.h"
 
@@ -21,5 +22,5 @@ void storage_get_chunk(const char *cPL_file_name, uint32_t u32L_chunk_addr, uint
 
 uint32_t storage_get_file_size(const char *cPL_file_name)
 {
-  return 0;
+  return u32_firmware_size - sizeof(image_hdr_t);
 }
