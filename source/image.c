@@ -9,8 +9,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <modem/modem.h>
-
 #include "crc32.h"
 
 #include "img-header.h"

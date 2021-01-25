@@ -16,24 +16,8 @@
 
 #include "usart.h"
 
-
-/** USART2 RX buffer */
-static uint8_t u8_usart2_data[UART_RX_BUFFER_SIZE];
-
-/** USART2 RX buffer */
-static uint8_t u8_uart4_data[UART_RX_BUFFER_SIZE];
-
-/** RX buffer size */
-const static uint16_t u16_usart2_data_arr_size = ARRAY_SIZE(u8_usart2_data);
-const static uint16_t u16_uart4_data_arr_size  = ARRAY_SIZE(u8_uart4_data);
-
-/** RX bytes received */
-static uint16_t u16S_uart4_num_rec = 0;
-
-/** Flag that indicates that data was received */
-volatile uint8_t u8_usart2_data_received;
-volatile uint8_t u8_uart4_data_received;
-
+static ring_buffer_t *objPL_uart2_ring_buff = NULL;
+static ring_buffer_t *objPL_uart4_ring_buff = NULL;
 
 void usart_setup(usart_instance_t *objPL_uart)
 {
@@ -57,10 +41,7 @@ void usart_setup(usart_instance_t *objPL_uart)
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
         GPIO_CNF_INPUT_FLOAT, GPIO_USART2_RX);
 
-    objPL_uart->u8P_buffer        = u8_usart2_data;
-    objPL_uart->u16_buff_size     = u16_usart2_data_arr_size;
-    objPL_uart->u8P_data_received = &u8_usart2_data_received;
-    objPL_uart->u16P_rec_bytes    = NULL;
+    objPL_uart2_ring_buff = &objPL_uart->obj_buffer;
   }
   else if (eL_uart_num == eUART4)
   {
@@ -76,10 +57,7 @@ void usart_setup(usart_instance_t *objPL_uart)
     gpio_set_mode(GPIOC, GPIO_MODE_INPUT,
         GPIO_CNF_INPUT_FLOAT, GPIO_UART4_RX);
 
-    objPL_uart->u8P_buffer        = u8_uart4_data;
-    objPL_uart->u16_buff_size     = u16_uart4_data_arr_size;
-    objPL_uart->u8P_data_received = &u8_uart4_data_received;
-    objPL_uart->u16P_rec_bytes    = &u16S_uart4_num_rec;
+    objPL_uart4_ring_buff = &objPL_uart->obj_buffer;
   }
 
   /* Setup UART parameters. */
@@ -96,6 +74,8 @@ void usart_setup(usart_instance_t *objPL_uart)
   USART_CR1(eL_uart_num) |= USART_CR1_RXNEIE;
 
   usart_disable_tx_interrupt(eL_uart_num);
+
+  ring_buffer_init(&objPL_uart->obj_buffer);
 
   /* Finally enable the USART. */
   usart_enable(eL_uart_num);
@@ -150,31 +130,21 @@ void usart_clear_rx_buf(usart_instance_t *objPL_uart)
   assert(objPL_uart != NULL);
   assert((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
 
-  for (uint16_t u16L_i = 0; u16L_i < objPL_uart->u16_buff_size; ++u16L_i)
-  {
-    objPL_uart->u8P_buffer[u16L_i] = 0;
-  }
+  char cL_tmp = "";
+
+  while (ring_buffer_dequeue(&objPL_uart->obj_buffer, &cL_tmp) != 0)
+    { }
 }
 
 void usart2_isr(void)
 {
-  static uint16_t u16SL_idx  = 0;
-
   /* Check if we were called because of RXNE. */
   if (((USART2_CR1 & USART_CR1_RXNEIE) != 0)
     && ((USART2_SR & USART_SR_RXNE) != 0))
   {
-    u8_usart2_data[u16SL_idx] = usart_recv(USART2);
-
     /* Retrieve the data from the peripheral. */
-    if (u16SL_idx < u16_usart2_data_arr_size)
-    {
-      ++u16SL_idx;
-    }
-    else
-    {
-      u16SL_idx = 0;
-    }
+    const uint8_t u8L_data = (uint8_t)usart_recv(USART2);
+    ring_buffer_queue(objPL_uart2_ring_buff, (char)u8L_data);
   }
   else if (((USART2_CR1 & USART_CR1_IDLEIE) != 0)
     && ((USART2_SR & USART_SR_IDLE) != 0))
@@ -185,33 +155,18 @@ void usart2_isr(void)
     // And follow by reading data register
     u32L_tmp = USART2_SR;
     u32L_tmp = USART2_DR;
-
-    u8_usart2_data[u16SL_idx] = '\0';
-
-    u8_usart2_data_received = 1;
-    u16SL_idx               = 0;
   }
 }
 
 void uart4_isr(void)
 {
-  static uint16_t u16SL_idx  = 0;
-
   /* Check if we were called because of RXNE. */
   if (((UART4_CR1 & USART_CR1_RXNEIE) != 0)
     && ((UART4_SR & USART_SR_RXNE) != 0))
   {
-    u8_uart4_data[u16SL_idx] = usart_recv(UART4);
-
     /* Retrieve the data from the peripheral. */
-    if (u16SL_idx < u16_uart4_data_arr_size)
-    {
-      ++u16SL_idx;
-    }
-    else
-    {
-      u16SL_idx = 0;
-    }
+    const uint8_t u8L_data = (uint8_t)usart_recv(UART4);
+    ring_buffer_queue(objPL_uart4_ring_buff, (char)u8L_data);
   }
   else if (((UART4_CR1 & USART_CR1_IDLEIE) != 0)
     && ((UART4_SR & USART_SR_IDLE) != 0))
@@ -222,13 +177,5 @@ void uart4_isr(void)
     // And follow by reading data register
     u32L_tmp = UART4_SR;
     u32L_tmp = UART4_DR;
-    
-    if (u16SL_idx > 1)
-    {
-      u16S_uart4_num_rec     = u16SL_idx - 1;
-      u8_uart4_data_received = 1;
-    }
-
-    u16SL_idx = 0;
   }
 }

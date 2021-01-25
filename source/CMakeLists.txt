@@ -13,13 +13,13 @@ target_sources(
   main.c
   image.c
   firmware.c
+  ringbuffer.c
   storage.c
   drivers/usart.c
   drivers/flash.c
   #drivers/bkp.c
-  modem/modem.c
   modem/sim800/sim800.c
-  #modem/at_command/at_command.c
+  modem/at_command/at_command.c
 )
 
 target_include_directories(

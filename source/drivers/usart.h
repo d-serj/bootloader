@@ -8,7 +8,9 @@
 
 #include <stdint.h>
 
-#include "libopencm3/stm32/usart.h"
+#include <libopencm3/stm32/usart.h>
+
+#include <ringbuffer.h>
 
 #define UART_RX_BUFFER_SIZE  2412u
 
@@ -22,10 +24,7 @@ typedef enum USART_INSTANCES uart_num_t;
 
 struct usart_instance
 {
-  uint8_t *u8P_buffer;
-  uint16_t *u16P_rec_bytes;
-  uint16_t u16_buff_size;
-  volatile uint8_t *u8P_data_received;
+  ring_buffer_t obj_buffer;
   uart_num_t e_instance;
 };
 typedef struct usart_instance usart_instance_t;

@@ -29,17 +29,14 @@ typedef enum atCommandState at_cmd_state_t;
 
 struct atCommand
 {
-  char *cP_send_buf;
-  const char *cP_receive_buf;
-  uint32_t u32_buf_size;   // 
+  const char *cP_sent_cmd;
+  uint32_t u32_buf_size;         // 
   uint32_t u32_timeout;          // AT command timeout
-  at_cmd_state_t e_cmd_state;  
 };
 typedef struct atCommand at_command_t;
 
-void at_command_init(at_command_t *objPL_at_cmd,
-  char *cPL_send_buf, uint32_t u32L_send_buf_size, char *cPL_rec_buf);
+void at_command_write_send(at_command_t *objPL_at_cmd, uint32_t u32L_timeout);
 
-at_cmd_res_t at_command_send(at_command_t *objPL_at_cmd, uint32_t u32L_timeout);
+uint8_t *at_command_receive_response(at_command_t *objPL_at_cmd);
 
 #endif // AT_COMMAND_H_
