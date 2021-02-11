@@ -8,8 +8,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <modem/modem.h>
-
 #include <system/assert.h>
 
 #include "crc32.h"
