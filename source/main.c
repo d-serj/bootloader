@@ -18,8 +18,7 @@
 #include "modem/sim800/sim800.h"
 #include "image.h"
 
-static usart_instance_t objS_usart2 = { .e_instance = eUART2 };
-static usart_instance_t objS_uart4  = { .e_instance = eUART4 };
+static usart_instance_t objS_uart4;
 
 static void clock_setup(void)
 {
@@ -52,8 +51,8 @@ int main(void)
   clock_setup();
   systick_setup();
   gpio_setup();
-  usart_setup(&objS_usart2);
-  usart_setup(&objS_uart4);
+
+  usart_setup(&objS_uart4, eUART4);
 /*
   while (*objS_uart4.u8P_data_received == 0)
   {
