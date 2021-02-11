@@ -11,8 +11,6 @@
 
 #include <modem/at_command/at_command.h>
 
-static at_command_t objS_at_cmd = { 0 };
-
 bool sim800_power_on(void)
 {
   if (gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin))
