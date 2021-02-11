@@ -8,9 +8,9 @@
 
 #include <stdint.h>
 
-#include "libopencm3/stm32/usart.h"
+#include <libopencm3/stm32/usart.h>
 
-#define UART_RX_BUFFER_SIZE  2412u
+#include <utilities/ringbuffer.h>
 
 enum USART_INSTANCES
 {
@@ -22,18 +22,17 @@ typedef enum USART_INSTANCES uart_num_t;
 
 struct usart_instance
 {
-  uint8_t *u8P_buffer;
-  uint16_t *u16P_rec_bytes;
-  uint16_t u16_buff_size;
-  volatile uint8_t *u8P_data_received;
+  ring_buffer_t obj_buffer;
   uart_num_t e_instance;
 };
 typedef struct usart_instance usart_instance_t;
 
 /**
  * @brief Initialize USART
+ * @param eL_uart_num .. UART instance number.
+ *        Support two instances eUART2 and eUART4
  */
-void usart_setup(usart_instance_t *objPL_uart);
+void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num);
 
 /**
  * @brief Deinitialize USART
@@ -51,6 +50,14 @@ void usart_send_string(const usart_instance_t *objPL_uart, const char *cPL_str);
  * @brief Clear receive buffer
  */
 void usart_clear_rx_buf(usart_instance_t *objPL_uart);
+
+/**
+ * @brief Get byte from USART stream
+ * 
+ * @param objPL_uart .. pointer to USART instance
+ * @return uint8_t received byte
+ */
+uint8_t usart_get_byte(usart_instance_t *objPL_uart);
 
 #endif // USART_H_
 

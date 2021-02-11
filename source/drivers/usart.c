@@ -5,41 +5,27 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <assert.h>
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 
+#include <system/assert.h>
 #include <utilities/toolbox.h>
+#include <utilities/ringbuffer.h>
 
 #include "usart.h"
 
+static ring_buffer_t *objSP_usart2_ring_buff = NULL;
+static ring_buffer_t *objSP_uart4_ring_buff  = NULL;
 
-/** USART2 RX buffer */
-static uint8_t u8_usart2_data[UART_RX_BUFFER_SIZE];
-
-/** USART2 RX buffer */
-static uint8_t u8_uart4_data[UART_RX_BUFFER_SIZE];
-
-/** RX buffer size */
-const static uint16_t u16_usart2_data_arr_size = ARRAY_SIZE(u8_usart2_data);
-const static uint16_t u16_uart4_data_arr_size  = ARRAY_SIZE(u8_uart4_data);
-
-/** RX bytes received */
-static uint16_t u16S_uart4_num_rec = 0;
-
-/** Flag that indicates that data was received */
-volatile uint8_t u8_usart2_data_received;
-volatile uint8_t u8_uart4_data_received;
-
-
-void usart_setup(usart_instance_t *objPL_uart)
+void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
 {
-  assert(objPL_uart != NULL);
-  const uart_num_t eL_uart_num = objPL_uart->e_instance;
-  assert((eL_uart_num == eUART2) || (eL_uart_num == eUART4));
+  ASSERT(objPL_uart != NULL);
+  ASSERT((eL_uart_num == eUART2) || (eL_uart_num == eUART4));
+
+  objPL_uart->e_instance = eL_uart_num;
 
   rcc_periph_clock_enable(RCC_AFIO);
 
@@ -57,10 +43,7 @@ void usart_setup(usart_instance_t *objPL_uart)
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
         GPIO_CNF_INPUT_FLOAT, GPIO_USART2_RX);
 
-    objPL_uart->u8P_buffer        = u8_usart2_data;
-    objPL_uart->u16_buff_size     = u16_usart2_data_arr_size;
-    objPL_uart->u8P_data_received = &u8_usart2_data_received;
-    objPL_uart->u16P_rec_bytes    = NULL;
+    objSP_usart2_ring_buff = &objPL_uart->obj_buffer;
   }
   else if (eL_uart_num == eUART4)
   {
@@ -68,7 +51,7 @@ void usart_setup(usart_instance_t *objPL_uart)
 
     nvic_enable_irq(NVIC_UART4_IRQ);
 
-        /* Setup GPIO pin GPIO_USART2_TX. */
+    /* Setup GPIO pin GPIO_USART2_TX. */
     gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_50_MHZ,
         GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_UART4_TX);
 
@@ -76,10 +59,7 @@ void usart_setup(usart_instance_t *objPL_uart)
     gpio_set_mode(GPIOC, GPIO_MODE_INPUT,
         GPIO_CNF_INPUT_FLOAT, GPIO_UART4_RX);
 
-    objPL_uart->u8P_buffer        = u8_uart4_data;
-    objPL_uart->u16_buff_size     = u16_uart4_data_arr_size;
-    objPL_uart->u8P_data_received = &u8_uart4_data_received;
-    objPL_uart->u16P_rec_bytes    = &u16S_uart4_num_rec;
+    objSP_uart4_ring_buff = &objPL_uart->obj_buffer;
   }
 
   /* Setup UART parameters. */
@@ -90,12 +70,12 @@ void usart_setup(usart_instance_t *objPL_uart)
   usart_set_parity(eL_uart_num, USART_PARITY_NONE);
   usart_set_flow_control(eL_uart_num, USART_FLOWCONTROL_NONE);
 
-  /* Enable USART Idle line detection */
-  USART_CR1(eL_uart_num) |= USART_CR1_IDLEIE;
   /* Enable USART Receive interrupt. */
   USART_CR1(eL_uart_num) |= USART_CR1_RXNEIE;
 
   usart_disable_tx_interrupt(eL_uart_num);
+
+  ring_buffer_init(&objPL_uart->obj_buffer);
 
   /* Finally enable the USART. */
   usart_enable(eL_uart_num);
@@ -104,7 +84,7 @@ void usart_setup(usart_instance_t *objPL_uart)
 void usart_deinit(usart_instance_t *objPL_uart)
 {
   const uart_num_t eL_uart_num = objPL_uart->e_instance;
-  assert((eL_uart_num == eUART2) || (eL_uart_num == eUART4));
+  ASSERT((eL_uart_num == eUART2) || (eL_uart_num == eUART4));
 
   if (eL_uart_num == eUART2)
   {
@@ -123,8 +103,8 @@ void usart_deinit(usart_instance_t *objPL_uart)
 
 void usart_send_string(const usart_instance_t *objPL_uart, const char *cPL_str)
 {
-  assert(objPL_uart != NULL);
-  assert((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
+  ASSERT(objPL_uart != NULL);
+  ASSERT((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
 
   while(*cPL_str != '\0')
   {
@@ -136,8 +116,8 @@ void usart_send_string(const usart_instance_t *objPL_uart, const char *cPL_str)
 void usart_send_raw(const usart_instance_t *objPL_uart,
   const uint8_t *u8PL_data, uint16_t u16L_data_size)
 {
-  assert(objPL_uart != NULL);
-  assert((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
+  ASSERT(objPL_uart != NULL);
+  ASSERT((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
 
   for (uint16_t u16L_i = 0; u16L_i < u16L_data_size; ++u16L_i)
   {
@@ -147,88 +127,45 @@ void usart_send_raw(const usart_instance_t *objPL_uart,
 
 void usart_clear_rx_buf(usart_instance_t *objPL_uart)
 {
-  assert(objPL_uart != NULL);
-  assert((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
+  ASSERT(objPL_uart != NULL);
+  ASSERT((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
 
-  for (uint16_t u16L_i = 0; u16L_i < objPL_uart->u16_buff_size; ++u16L_i)
+  ring_buffer_t *objPL_ring_buff = &objPL_uart->obj_buffer;
+
+  while (ring_buffer_is_empty(objPL_ring_buff) == 0)
   {
-    objPL_uart->u8P_buffer[u16L_i] = 0;
+    ring_buffer_dequeue(objPL_ring_buff, NULL);
   }
+}
+
+uint8_t usart_get_byte(usart_instance_t *objPL_uart)
+{
+  uint8_t u8L_data = 0;
+
+  while (ring_buffer_dequeue(&objPL_uart->obj_buffer, &u8L_data) == 0)
+    {};
+
+  return u8L_data;
 }
 
 void usart2_isr(void)
 {
-  static uint16_t u16SL_idx  = 0;
-
   /* Check if we were called because of RXNE. */
   if (((USART2_CR1 & USART_CR1_RXNEIE) != 0)
     && ((USART2_SR & USART_SR_RXNE) != 0))
   {
-    u8_usart2_data[u16SL_idx] = usart_recv(USART2);
-
-    /* Retrieve the data from the peripheral. */
-    if (u16SL_idx < u16_usart2_data_arr_size)
-    {
-      ++u16SL_idx;
-    }
-    else
-    {
-      u16SL_idx = 0;
-    }
-  }
-  else if (((USART2_CR1 & USART_CR1_IDLEIE) != 0)
-    && ((USART2_SR & USART_SR_IDLE) != 0))
-  {
-    volatile uint32_t u32L_tmp = 0;
-
-    // Clear IDLE flag by reading status register first
-    // And follow by reading data register
-    u32L_tmp = USART2_SR;
-    u32L_tmp = USART2_DR;
-
-    u8_usart2_data[u16SL_idx] = '\0';
-
-    u8_usart2_data_received = 1;
-    u16SL_idx               = 0;
+    const uint8_t u8L_data = (uint8_t)usart_recv(USART2);
+    ring_buffer_queue(objSP_usart2_ring_buff, u8L_data);
   }
 }
 
 void uart4_isr(void)
 {
-  static uint16_t u16SL_idx  = 0;
-
   /* Check if we were called because of RXNE. */
   if (((UART4_CR1 & USART_CR1_RXNEIE) != 0)
     && ((UART4_SR & USART_SR_RXNE) != 0))
   {
-    u8_uart4_data[u16SL_idx] = usart_recv(UART4);
-
-    /* Retrieve the data from the peripheral. */
-    if (u16SL_idx < u16_uart4_data_arr_size)
-    {
-      ++u16SL_idx;
-    }
-    else
-    {
-      u16SL_idx = 0;
-    }
-  }
-  else if (((UART4_CR1 & USART_CR1_IDLEIE) != 0)
-    && ((UART4_SR & USART_SR_IDLE) != 0))
-  {
-    volatile uint32_t u32L_tmp = 0;
-
-    // Clear IDLE flag by reading status register first
-    // And follow by reading data register
-    u32L_tmp = UART4_SR;
-    u32L_tmp = UART4_DR;
-    
-    if (u16SL_idx > 1)
-    {
-      u16S_uart4_num_rec     = u16SL_idx - 1;
-      u8_uart4_data_received = 1;
-    }
-
-    u16SL_idx = 0;
+    const uint8_t u8L_data = (uint8_t)usart_recv(UART4);
+    ring_buffer_queue(objSP_uart4_ring_buff, u8L_data);
   }
 }
