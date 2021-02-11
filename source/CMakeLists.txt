@@ -5,8 +5,9 @@ project("application" C ASM)
 add_executable(${TARGET_NAME} "")
 
 target_sources(
-  ${TARGET_NAME}
-  PRIVATE
+  ${TARGET_NAME} PRIVATE
+  system/assert.c
+  utilities/ringbuffer.c
   bootloader.c
   crc32.c
   delay.c
