@@ -3,13 +3,14 @@
  * @brief Image related funcitons
  */
 
-#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stddef.h>
 
 #include <modem/modem.h>
+
+#include <system/assert.h>
 
 #include "crc32.h"
 
@@ -46,7 +47,7 @@ const image_hdr_t image_header_get(void)
 
 bool image_validate(const image_hdr_t *objPL_hdr)
 {
-  assert(objPL_hdr != NULL);
+  ASSERT(objPL_hdr != NULL);
   // Validate header
   if (image_header_check(objPL_hdr) == false)
   {
@@ -81,15 +82,15 @@ bool image_validate(const image_hdr_t *objPL_hdr)
   return (u32L_file_crc32 == objPL_hdr->u32_crc);
 }
 
-void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size)
+void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size)
 {
-  assert(u8PL_chunk_buf != NULL);
+  ASSERT(u8PL_chunk_buf != NULL);
 
-  storage_get_chunk(NULL, u32L_chunk_addr, u8PL_chunk_buf, u32L_chunk_size);
+  storage_get_chunk("some_file.txt", u32L_chunk_addr, u8PL_chunk_buf, u32L_chunk_size);
 }
 
 uint32_t image_get_size(void)
 {
   // TMP
-  return storage_get_file_size(NULL);
+  return storage_get_file_size("some_file.txt");
 }
