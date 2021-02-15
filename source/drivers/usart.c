@@ -125,7 +125,7 @@ void usart_send_raw(const usart_instance_t *objPL_uart,
   }
 }
 
-void usart_clear_rx_buf(usart_instance_t *objPL_uart)
+void usart_flush(usart_instance_t *objPL_uart)
 {
   ASSERT(objPL_uart != NULL);
   ASSERT((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
