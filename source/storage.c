@@ -46,6 +46,7 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
 
   if (storage_compare_echo(cPL_buff, strlen(cPL_buff)) == false)
   {
+    usart_flush(&objS_usart2);
     return 0;
   }
 
@@ -54,6 +55,7 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
   while (u32L_idx <= u32L_chunk_size)
   {
     u8PL_chunk_buf[u32L_idx] = usart_get_byte(&objS_usart2);
+    ++u32L_idx;
   }
 
   return u32L_idx;
@@ -73,6 +75,7 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
 
   if (storage_compare_echo(cPL_buff, strlen(cPL_buff)) == false)
   {
+    usart_flush(&objS_usart2);
     return 0;
   }
 
@@ -87,6 +90,7 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
     if (u32L_idx >= ARRAY_SIZE(cPL_buff))
     {
       ASSERT(0);
+      usart_flush(&objS_usart2);
       return 0;
     }
   }

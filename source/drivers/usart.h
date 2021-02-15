@@ -49,7 +49,7 @@ void usart_send_string(const usart_instance_t *objPL_uart, const char *cPL_str);
 /**
  * @brief Clear receive buffer
  */
-void usart_clear_rx_buf(usart_instance_t *objPL_uart);
+void usart_flush(usart_instance_t *objPL_uart);
 
 /**
  * @brief Get byte from USART stream
