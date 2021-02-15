@@ -29,6 +29,12 @@ void storage_init(void)
   usart_send_string(&objS_usart2, "ATE\r\n");
 }
 
+void storage_deinit(void)
+{
+  usart_deinit(&objS_usart2);
+  sim800_power_off();
+}
+
 uint32_t storage_get_chunk(const char *cPL_file_name,
                        uint32_t u32L_chunk_addr,
                        uint8_t *u8PL_chunk_buf,
