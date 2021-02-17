@@ -8,7 +8,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <drivers/usart.h>
+#include <drivers/usart_driver.h>
 #include <delay.h>
 
 #include "at_command.h"
