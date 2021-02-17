@@ -72,7 +72,7 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
   usart_set_flow_control(eL_uart_num, USART_FLOWCONTROL_NONE);
 
   /* Enable USART Receive interrupt. */
-  USART_CR1(eL_uart_num) |= USART_CR1_RXNEIE;
+  usart_enable_rx_interrupt(eL_uart_num);
 
   usart_disable_tx_interrupt(eL_uart_num);
 
