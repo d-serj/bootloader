@@ -38,18 +38,35 @@ endif(NOT Ruby_FOUND)
 set(MAIN_PROJ_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../source)
 
 set(MAIN_PROJ_SOURCES
+  ${MAIN_PROJ_PATH}/drivers/usart_driver.c
+  ${MAIN_PROJ_PATH}/utilities/ringbuffer.c
+  ${MAIN_PROJ_PATH}/modem/sim800/sim800.c
   ${MAIN_PROJ_PATH}/image.c
   ${MAIN_PROJ_PATH}/crc32.c
   ${MAIN_PROJ_PATH}/firmware.c
+  ${MAIN_PROJ_PATH}/storage.c
 )
-  
+
+set(UNIT_TEST_STUBS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/cm3/nvic.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/usart.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/gpio.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/rcc.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/delay.c
+)
+
 set(UNIT_TEST_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestImage.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/TestImage.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_storage.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_usart_driver.c
 )
 
 set(INCLUDES_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/../source
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/drivers
   ${CMAKE_CURRENT_SOURCE_DIR}/fff
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs
   ${CMAKE_CURRENT_SOURCE_DIR}/Unity
 )
 
@@ -57,9 +74,9 @@ macro(add_test_executable FILENAME)
   add_executable(${FILENAME})
 
   add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/tests/${FILENAME}_Runner.c
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}_Runner.c
     PRE_BUILD
-    COMMAND ${Ruby_EXECUTABLE} generate_test_runner.rb ${CMAKE_CURRENT_SOURCE_DIR}/tests/${FILENAME}.c
+    COMMAND ${Ruby_EXECUTABLE} generate_test_runner.rb ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}.c
     COMMENT "Generating test runner for ${FILENAME}.c ..."
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Unity/auto
   )
@@ -67,9 +84,10 @@ macro(add_test_executable FILENAME)
   target_sources(
     ${FILENAME}
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/${FILENAME}.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/${FILENAME}_Runner.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}_Runner.c
     ${MAIN_PROJ_SOURCES}
+    ${UNIT_TEST_STUBS}
   )
   target_link_libraries(${FILENAME} PRIVATE unity)
   target_include_directories(${FILENAME} PRIVATE ${INCLUDES_PATH})
