@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include <image.h>
-#include <firmware.h>
+#include <storage.h>
 
 /*=======External Functions This Runner Calls=====*/
 extern void setUp(void);
@@ -74,10 +74,10 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 /*=======MAIN=====*/
 int main(void)
 {
-  UnityBegin("C:/Home/Project/bootloader/test/tests/TestImage.c");
-  run_test(test_ImageImageSize, "test_ImageImageSize", 38);
-  run_test(test_ImageHeaderCheck, "test_ImageHeaderCheck", 45);
-  run_test(test_ImageValidateTest, "test_ImageValidateTest", 52);
+  UnityBegin("D:/Projects/STM32/bootloader/test/src/tests/TestImage.c");
+  run_test(test_ImageImageSize, "test_ImageImageSize", 25);
+  run_test(test_ImageHeaderCheck, "test_ImageHeaderCheck", 31);
+  run_test(test_ImageValidateTest, "test_ImageValidateTest", 37);
 
   return UnityEnd();
 }
