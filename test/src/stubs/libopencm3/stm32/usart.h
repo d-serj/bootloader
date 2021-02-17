@@ -168,7 +168,7 @@
 #define UART5_SR			0xFFFF
 
 /* Data register (USARTx_DR) */
-#define USART_DR(usart_base)		usart_base
+#define USART_DR(usart_base) (void)0
 #define USART1_DR			USART1
 #define USART2_DR			USART2
 #define USART3_DR			USART3
@@ -176,7 +176,7 @@
 #define UART5_DR			UART5
 
 /* Baud rate register (USARTx_BRR) */
-#define USART_BRR(usart_base)		usart_base
+#define USART_BRR(usart_base) (void)0
 #define USART1_BRR		USART1
 #define USART2_BRR		USART2
 #define USART3_BRR		USART3
@@ -184,7 +184,7 @@
 #define UART5_BRR			UART5
 
 /* Control register 1 (USARTx_CR1) */
-#define USART_CR1(usart_base)		usart_base
+#define USART_CR1(usart_base) (void)0
 #define USART1_CR1		0xFFFF
 #define USART2_CR1		0xFFFF
 #define USART3_CR1		0xFFFF
@@ -192,7 +192,7 @@
 #define UART5_CR1			0xFFFF
 
 /* Control register 2 (USARTx_CR2) */
-#define USART_CR2(usart_base)		usart_base
+#define USART_CR2(usart_base) (void)0
 #define USART1_CR2		USART1
 #define USART2_CR2		USART2
 #define USART3_CR2		USART3
@@ -200,7 +200,7 @@
 #define UART5_CR2			UART5
 
 /* Control register 3 (USARTx_CR3) */
-#define USART_CR3(usart_base)		usart_base
+#define USART_CR3(usart_base) (void)0
 #define USART1_CR3		USART1
 #define USART2_CR3		USART2
 #define USART3_CR3		USART3
@@ -208,7 +208,7 @@
 #define UART5_CR3			UART5
 
 /* Guard time and prescaler register (USARTx_GTPR) */
-#define USART_GTPR(usart_base)		usart_base
+#define USART_GTPR(usart_base) (void)0
 #define USART1_GTPR			USART1
 #define USART2_GTPR			USART2
 #define USART3_GTPR			USART3

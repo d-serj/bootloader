@@ -38,7 +38,7 @@ void gpio_clear(uint32_t gpioport, uint16_t gpios)
 
 uint16_t gpio_get(uint32_t gpioport, uint16_t gpios)
 {
-
+	return 1;
 }
 
 void gpio_toggle(uint32_t gpioport, uint16_t gpios)
