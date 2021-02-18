@@ -43,7 +43,6 @@ set(MAIN_PROJ_SOURCES
   ${MAIN_PROJ_PATH}/modem/sim800/sim800.c
   ${MAIN_PROJ_PATH}/image.c
   ${MAIN_PROJ_PATH}/crc32.c
-  ${MAIN_PROJ_PATH}/firmware.c
   ${MAIN_PROJ_PATH}/storage.c
 )
 
