@@ -50,7 +50,7 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
   const uint8_t u8L_mode = (u32L_chunk_addr == 0) ? 0 : 1;
   char cPL_buff[128]     = { 0 };
   
-  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%ld,%ld\r\n",
+  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%d,%d\r\n",
     cPL_file_name, u8L_mode, u32L_chunk_size, u32L_chunk_addr);
   usart_send_string(&objS_usart2, cPL_buff);
 
@@ -92,11 +92,11 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
   }
 
   uint32_t u32L_idx = 0;
-  char cL_input     = '\0';
+  uint8_t u8L_byte  = 0;
   // Get file size
-  while (usart_get_byte(&objS_usart2, (uint8_t*)&cL_input, 10))
+  while (usart_get_byte(&objS_usart2, &u8L_byte, 10))
   {
-    cPL_buff[u32L_idx] = cL_input;
+    cPL_buff[u32L_idx] = (char)u8L_byte;
     ++u32L_idx;
 
     if (u32L_idx >= ARRAY_SIZE(cPL_buff))
