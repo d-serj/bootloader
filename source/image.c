@@ -84,11 +84,11 @@ void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t *u8PL_chunk_buf, uint32_t
 {
   ASSERT(u8PL_chunk_buf != NULL);
 
-  storage_get_chunk("some_file.txt", u32L_chunk_addr, u8PL_chunk_buf, u32L_chunk_size);
+  storage_get_chunk("firmware.bin", u32L_chunk_addr, u8PL_chunk_buf, u32L_chunk_size);
 }
 
 uint32_t image_get_size(void)
 {
   // TMP
-  return storage_get_file_size("some_file.txt");
+  return storage_get_file_size("firmware.bin");
 }
