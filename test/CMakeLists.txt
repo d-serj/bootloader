@@ -56,7 +56,7 @@ set(UNIT_TEST_STUBS
 )
 
 set(UNIT_TEST_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/TestImage.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_storage.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_usart_driver.c
 )
