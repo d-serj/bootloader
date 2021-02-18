@@ -5,7 +5,7 @@
 #ifndef PINS_H_
 #define PINS_H_
 
-#include "libopencm3/stm32/gpio.h"
+#include <libopencm3/stm32/gpio.h>
 
 #define CPU_STATUS_Pin           GPIO0
 #define CPU_STATUS_GPIO_Port     GPIOC

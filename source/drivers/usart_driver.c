@@ -1,5 +1,5 @@
 /**
- * @file usart.c
+ * @file usart_driver.c
  * @brief Usart program module
  */
 
@@ -14,8 +14,9 @@
 #include <system/assert.h>
 #include <utilities/toolbox.h>
 #include <utilities/ringbuffer.h>
+#include <delay.h>
 
-#include "usart.h"
+#include "usart_driver.h"
 
 static ring_buffer_t *objSP_usart2_ring_buff = NULL;
 static ring_buffer_t *objSP_uart4_ring_buff  = NULL;
@@ -71,7 +72,7 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
   usart_set_flow_control(eL_uart_num, USART_FLOWCONTROL_NONE);
 
   /* Enable USART Receive interrupt. */
-  USART_CR1(eL_uart_num) |= USART_CR1_RXNEIE;
+  usart_enable_rx_interrupt(eL_uart_num);
 
   usart_disable_tx_interrupt(eL_uart_num);
 
@@ -138,14 +139,21 @@ void usart_flush(usart_instance_t *objPL_uart)
   }
 }
 
-uint8_t usart_get_byte(usart_instance_t *objPL_uart)
+uint8_t usart_get_byte(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout)
 {
-  uint8_t u8L_data = 0;
+  ASSERT(objPL_uart != NULL);
 
-  while (ring_buffer_dequeue(&objPL_uart->obj_buffer, &u8L_data) == 0)
-    {};
+  uint8_t u8L_delay = 0;
+  uint8_t u8L_ret   = 0;
 
-  return u8L_data;
+  while ((u8L_ret == 0) && (u8L_delay <= u8L_timeout))
+  {
+    u8L_ret = ring_buffer_dequeue(&objPL_uart->obj_buffer, u8PL_byte);
+    ++u8L_delay;
+    delay(1);
+  }
+
+  return u8L_ret;
 }
 
 void usart2_isr(void)

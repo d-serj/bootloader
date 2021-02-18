@@ -15,7 +15,7 @@
 #include "pins.h"
 #include "img-header.h"
 #include "delay.h"
-#include "drivers/usart.h"
+#include "drivers/usart_driver.h"
 #include "drivers/flash.h"
 #include "memory_map.h"
 

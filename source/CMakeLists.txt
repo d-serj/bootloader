@@ -14,9 +14,8 @@ target_sources(
   main.c
   image.c
   firmware.c
-  ringbuffer.c
   storage.c
-  drivers/usart.c
+  drivers/usart_driver.c
   drivers/flash.c
   #drivers/bkp.c
   modem/sim800/sim800.c

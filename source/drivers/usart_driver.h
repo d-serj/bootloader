@@ -1,10 +1,10 @@
 /**
- * @file usart.h
+ * @file usart_driver.h
  * @brief Usart program module
  */
 
-#ifndef USART_H_
-#define USART_H_
+#ifndef USART_DRIVER_H_
+#define USART_DRIVER_H_
 
 #include <stdint.h>
 
@@ -55,9 +55,11 @@ void usart_flush(usart_instance_t *objPL_uart);
  * @brief Get byte from USART stream
  * 
  * @param objPL_uart .. pointer to USART instance
- * @return uint8_t received byte
+ * @param u8PL_byte .. pointer to uint8_t where received data will be stored
+ * @param u8L_timeout .. timeout to wait for a byte
+ * @return uint8_t 1 if byte was received, 0 otherwise
  */
-uint8_t usart_get_byte(usart_instance_t *objPL_uart);
+uint8_t usart_get_byte(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout);
 
-#endif // USART_H_
+#endif // USART_DRIVER_H_
 
