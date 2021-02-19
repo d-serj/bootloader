@@ -78,8 +78,9 @@ int main(void)
   // 8. Check CRC32
   // 6. Image start
   //image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
-  const image_hdr_t objL_hdr = image_header_get();
-  image_validate(&objL_hdr);
+  image_t objL_image;
+  image_init(&objL_image, "firmware.bin");
+  image_validate(&objL_image);
   
   for(;;);
 

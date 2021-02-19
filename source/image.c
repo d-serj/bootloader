@@ -10,6 +10,8 @@
 
 #include <system/assert.h>
 
+#include <utilities/toolbox.h>
+
 #include "crc32.h"
 
 #include "img-header.h"
@@ -17,14 +19,24 @@
 #include "storage.h"
 
 #ifndef UTEST
-static void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size);
+static void image_header_get(image_t *objPL_this);
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
-static uint32_t image_get_size(void);
+static bool image_compare_crc32(image_t *objPL_this);
 #else
-void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t* u8PL_chunk_buf, uint32_t u32L_chunk_size);
+void image_header_get(image_t *objPL_this);
 bool image_header_check(const image_hdr_t *objPL_img_hdr);
-uint32_t image_get_size(void);
+bool image_compare_crc32(image_t *objPL_this);
 #endif // UTEST
+
+void image_init(image_t *objPL_this, const char *cPL_filename)
+{
+  objPL_this->cP_file_name    = cPL_filename;
+  objPL_this->obj_img_hdr     = (image_hdr_t){ 0 };
+  objPL_this->u32_read_offset = 0;
+
+  objPL_this->u32_file_size     = storage_get_file_size(objPL_this->cP_file_name);
+  objPL_this->u32_firmware_size = objPL_this->u32_file_size - sizeof(image_hdr_t);
+}
 
 bool image_header_check(const image_hdr_t *objPL_img_hdr)
 {
@@ -32,63 +44,65 @@ bool image_header_check(const image_hdr_t *objPL_img_hdr)
     && (objPL_img_hdr->u16_image_hdr_version == IMAGE_VERSION_CURRENT));
 }
 
-const image_hdr_t image_header_get(void)
+void image_header_get(image_t *objPL_this)
 {
-  // Get image header from SIM800
-  image_hdr_t objL_image_header          = { 0 };
+  // Get image header from storage
   uint8_t u8PL_buff[sizeof(image_hdr_t)] = { 0 };
-  image_get_chunk(0, u8PL_buff, sizeof(image_hdr_t));
-  memcpy(&objL_image_header, u8PL_buff, sizeof(image_hdr_t));
-
-  return objL_image_header;
+  storage_get_chunk(objPL_this->cP_file_name, 0, u8PL_buff, sizeof(image_hdr_t));
+  memcpy(&objPL_this->obj_img_hdr, u8PL_buff, sizeof(image_hdr_t));
+  // Set read offset
+  objPL_this->u32_read_offset = sizeof(image_hdr_t);
 }
 
-bool image_validate(const image_hdr_t *objPL_hdr)
+bool image_validate(image_t *objPL_this)
 {
-  ASSERT(objPL_hdr != NULL);
+  ASSERT(objPL_this != NULL);
+
   // Validate header
-  if (image_header_check(objPL_hdr) == false)
+  image_header_get(objPL_this);
+  if (image_header_check(&objPL_this->obj_img_hdr) == false)
   {
     return false;
   }
+  
   // Compare stored in the header image size with size stored in memory
-  if (image_get_size() != objPL_hdr->u32_data_size)
+  if (objPL_this->u32_firmware_size != objPL_this->obj_img_hdr.u32_data_size)
   {
     return false;
   }
 
-  const uint32_t u32L_chunk_size = 256u;
-  uint32_t u32L_file_crc32       = 0;
-  uint32_t u32L_remaining_bytes  = objPL_hdr->u32_data_size;
-  // Skip header since it is already downloaded
-  uint32_t u32L_download_pos     = sizeof(image_hdr_t);
+  return image_compare_crc32(objPL_this);
+}
 
-  while (u32L_remaining_bytes > 0)
+bool image_compare_crc32(image_t *objPL_this)
+{
+  uint8_t u8PL_buff[256]   = { 0 };
+  uint32_t u32L_file_crc32 = 0;
+  uint32_t u32L_bytes_read = 0;
+
+  while ((u32L_bytes_read = image_read(objPL_this, u8PL_buff, ARRAY_SIZE(u8PL_buff))) != 0)
   {
-    const uint32_t u32L_size_to_get =
-      (u32L_remaining_bytes > u32L_chunk_size) ? u32L_chunk_size : u32L_remaining_bytes;
-    uint8_t u8PL_chunk[u32L_size_to_get];
-    memset(u8PL_chunk, 0, u32L_size_to_get);
-    image_get_chunk(u32L_download_pos, u8PL_chunk, u32L_size_to_get);
-
-    u32L_file_crc32 = crc32((const void*)u8PL_chunk, u32L_size_to_get, u32L_file_crc32);
-
-    u32L_download_pos    += u32L_size_to_get;
-    u32L_remaining_bytes -= u32L_size_to_get;
+    u32L_file_crc32 = crc32((const void*)u8PL_buff, u32L_bytes_read, u32L_file_crc32);
   }
 
-  return (u32L_file_crc32 == objPL_hdr->u32_crc);
+  return (u32L_file_crc32 == objPL_this->obj_img_hdr.u32_crc);
 }
 
-void image_get_chunk(uint32_t u32L_chunk_addr, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size)
+uint32_t image_read(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size)
 {
-  ASSERT(u8PL_chunk_buf != NULL);
+  const uint32_t u32L_remaining_bytes =
+    objPL_this->u32_read_offset - objPL_this->u32_firmware_size;
 
-  storage_get_chunk("firmware.bin", u32L_chunk_addr, u8PL_chunk_buf, u32L_chunk_size);
-}
+  if (u32L_remaining_bytes == 0)
+  {
+    return 0;
+  }
 
-uint32_t image_get_size(void)
-{
-  // TMP
-  return storage_get_file_size("firmware.bin");
+  const uint32_t u32L_size_to_get = 
+    (u32L_remaining_bytes > u32L_buff_size) ? u32L_buff_size : u32L_remaining_bytes;
+  const uint32_t u32L_num_bytes_read = 
+    storage_get_chunk(objPL_this->cP_file_name, objPL_this->u32_read_offset, u8PL_buff, u32L_size_to_get);
+  objPL_this->u32_read_offset += u32L_size_to_get;
+
+  return u32L_num_bytes_read;
 }
