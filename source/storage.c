@@ -13,6 +13,7 @@
 #include <drivers/usart_driver.h>
 #include <modem/sim800/sim800.h>
 #include <utilities/toolbox.h>
+#include <delay.h>
 
 #include "img-header.h"
 #include "storage.h"
@@ -31,6 +32,8 @@ void storage_init(void)
   usart_setup(&objS_usart2, eUART2);
   sim800_power_on();
   usart_send_string(&objS_usart2, "ATE\r\n");
+  delay(1);
+  usart_flush(&objS_usart2);
 }
 
 void storage_deinit(void)
@@ -50,7 +53,7 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
   const uint8_t u8L_mode = (u32L_chunk_addr == 0) ? 0 : 1;
   char cPL_buff[128]     = { 0 };
   
-  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%d,%d\r\n",
+  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
     cPL_file_name, u8L_mode, u32L_chunk_size, u32L_chunk_addr);
   usart_send_string(&objS_usart2, cPL_buff);
 
@@ -82,7 +85,7 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
 
   ASSERT(strlen(cPL_file_name) < (ARRAY_SIZE(cPL_buff) - strlen(cPL_cmd) + 1));
 
-  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "%s%s\r\n", cPL_cmd, cPL_file_name);
+  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "%s%s\r\n+FSFLSIZE: ", cPL_cmd, cPL_file_name);
   usart_send_string(&objS_usart2, cPL_buff);
 
   if (storage_compare_echo(cPL_buff, strlen(cPL_buff)) == false)
@@ -97,6 +100,7 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
   while (usart_get_byte(&objS_usart2, &u8L_byte, 10))
   {
     cPL_buff[u32L_idx] = (char)u8L_byte;
+
     ++u32L_idx;
 
     if (u32L_idx >= ARRAY_SIZE(cPL_buff))
@@ -126,23 +130,22 @@ bool storage_compare_echo(const char *cPL_cmd, uint32_t u32L_cmd_len)
   {
     if (cPL_cmd[u32L_idx] == cL_input)
     {
-      if (u32L_idx == u32L_cmd_len)
+      if (u32L_idx == (u32L_cmd_len - 1))
       {
         bL_return = true;
         break;
-      }
-      
-      ++u32L_idx;
-
-      if (u32L_idx > u32L_cmd_len)
-      {
-        ASSERT(0);
-        return 0;
       }
     }
     else
     {
       bL_return = false;
+      break;
+    }
+
+    ++u32L_idx;
+    if (u32L_idx > u32L_cmd_len)
+    {
+      ASSERT(0);
       break;
     }
   }
