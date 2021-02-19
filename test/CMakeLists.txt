@@ -55,7 +55,7 @@ set(UNIT_TEST_STUBS
 )
 
 set(UNIT_TEST_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
+  #${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_storage.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_usart_driver.c
 )
@@ -94,13 +94,13 @@ macro(add_test_executable FILENAME)
   target_compile_options(${FILENAME} PRIVATE -O0 -g3)
   add_test(NAME ${FILENAME} COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/${FILENAME})
 
-  add_custom_command(
-    TARGET ${FILENAME}
-    POST_BUILD
-    COMMAND ${FILENAME}${CMAKE_EXECUTABLE_SUFFIX}
-    COMMENT "Running ${FILENAME} unit tests"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/
-  )
+  #add_custom_command(
+  #  TARGET ${FILENAME}
+  #  POST_BUILD
+  #  COMMAND ${FILENAME}${CMAKE_EXECUTABLE_SUFFIX}
+  #  COMMENT "Running ${FILENAME} unit tests"
+  #  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/
+  #)
 endmacro(add_test_executable)
 
 foreach(TEST_SRC ${UNIT_TEST_SOURCES})
