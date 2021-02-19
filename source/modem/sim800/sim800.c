@@ -61,14 +61,3 @@ void sim800_init(void)
   //at_command_write_send("ATE\r\n", )
   //Sim80x_SendAtCommand("ATE1\r\n", 200, 1, "\r\nOK\r\n");								          // Turn echo mode on
 }
-
-uint32_t sim800_storage_get_file_size(const char *cPL_file_name)
-{
-  // Отправить команду по юарт
-  // Ждать эхо
-  // все что не совпадает с эхо скипаем
-  // После эхо начинаем парсить ответ
-  
-}
-
-
