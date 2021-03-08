@@ -58,8 +58,6 @@ bool image_validate(image_t *objPL_this)
 {
   ASSERT(objPL_this != NULL);
 
-  // Validate header
-  image_header_get(objPL_this);
   if (image_header_check(&objPL_this->obj_img_hdr) == false)
   {
     return false;
