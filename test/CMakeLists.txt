@@ -27,7 +27,7 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Unity ${EXECUTABLE_OUTPUT_PATH}/Unity)
 
-find_package(Ruby)
+find_package(Ruby 2.7 QUIET COMPONENTS Ruby_EXECUTABLE)
 
 if(NOT Ruby_FOUND)
   message(WARNING "Ruby is not installed. Please, download Ruby from https://rubyinstaller.org/downloads/ and install it!\n")
@@ -41,8 +41,8 @@ set(MAIN_PROJ_SOURCES
   ${MAIN_PROJ_PATH}/drivers/usart_driver.c
   ${MAIN_PROJ_PATH}/utilities/ringbuffer.c
   ${MAIN_PROJ_PATH}/modem/sim800/sim800.c
-  ${MAIN_PROJ_PATH}/image.c
   ${MAIN_PROJ_PATH}/crc32.c
+  ${MAIN_PROJ_PATH}/image.c
   ${MAIN_PROJ_PATH}/storage.c
 )
 
@@ -55,7 +55,7 @@ set(UNIT_TEST_STUBS
 )
 
 set(UNIT_TEST_SOURCES
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_storage.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_usart_driver.c
 )
@@ -88,6 +88,7 @@ macro(add_test_executable FILENAME)
     ${MAIN_PROJ_SOURCES}
     ${UNIT_TEST_STUBS}
   )
+
   target_link_libraries(${FILENAME} PRIVATE unity)
   target_include_directories(${FILENAME} PRIVATE ${INCLUDES_PATH})
   target_compile_definitions(${FILENAME} PRIVATE UTEST)

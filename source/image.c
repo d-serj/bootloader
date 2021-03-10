@@ -19,11 +19,9 @@
 #include "storage.h"
 
 #ifndef UTEST
-static void image_header_get(image_t *objPL_this);
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
 static bool image_compare_crc32(image_t *objPL_this);
 #else
-void image_header_get(image_t *objPL_this);
 bool image_header_check(const image_hdr_t *objPL_img_hdr);
 bool image_compare_crc32(image_t *objPL_this);
 #endif // UTEST
@@ -33,6 +31,8 @@ void image_init(image_t *objPL_this, const char *cPL_filename)
   objPL_this->cP_file_name    = cPL_filename;
   objPL_this->obj_img_hdr     = (image_hdr_t){ 0 };
   objPL_this->u32_read_offset = 0;
+
+  storage_init();
 
   objPL_this->u32_file_size     = storage_get_file_size(objPL_this->cP_file_name);
   objPL_this->u32_firmware_size = objPL_this->u32_file_size - sizeof(image_hdr_t);

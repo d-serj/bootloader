@@ -14,48 +14,29 @@
 #include <image.h>
 #include <utilities/toolbox.h>
 
-#include "test_image.h"
+extern bool image_header_check(const image_hdr_t *objPL_img_hdr);
+extern bool image_compare_crc32(image_t *objPL_this);
 
 DEFINE_FFF_GLOBALS;
 
 FAKE_VOID_FUNC(usart_send_blocking, uint32_t, uint16_t);
 
-char cPL_buff[256]       = { 0 };
-static uint16_t s16S_idx = 0;
-
-uint16_t usart_recv(uint32_t usart)
-{
-  return (uint16_t)cPL_buff[s16S_idx++];
-}
 
 void setUp(void)
 {
-  storage_init();
-  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%d,%d\r\n", 
-    "firmware.bin", 0, sizeof(image_hdr_t), 0);
+  
 }
 
 void tearDown(void)
 {
-  s16S_idx = 0;
+  
 }
 
-void test_ImageImageSize(void)
+void test_image_init(void)
 {
-  RESET_FAKE(usart_send_blocking);
-  const image_hdr_t objL_hdr = image_header_get();
-  TEST_ASSERT_EQUAL(strlen(cPL_buff), usart_send_blocking_fake.call_count);
-  TEST_ASSERT_EQUAL(image_get_size(), objL_hdr.u32_data_size);
-}
+  image_t objL_image = (image_t){ 0 };
 
-void test_ImageHeaderCheck(void)
-{
-  const image_hdr_t objL_hdr = image_header_get();
-  TEST_ASSERT_TRUE(image_header_check(&objL_hdr));
-}
+  image_init(&objL_image, "firmware.bin");
 
-void test_ImageValidateTest(void)
-{
-  const image_hdr_t objL_hdr = image_header_get();
-  TEST_ASSERT_TRUE(image_validate(&objL_hdr));
+  TEST_ASSERT_EQUAL(objL_image.u32_firmware_size, objL_image.obj_img_hdr.u32_data_size);
 }
