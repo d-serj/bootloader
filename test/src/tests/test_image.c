@@ -19,24 +19,30 @@ extern bool image_compare_crc32(image_t *objPL_this);
 
 DEFINE_FFF_GLOBALS;
 
-FAKE_VOID_FUNC(usart_send_blocking, uint32_t, uint16_t);
-
+FAKE_VOID_FUNC(storage_init);
+FAKE_VALUE_FUNC(uint32_t, storage_get_file_size, const char*);
+FAKE_VALUE_FUNC(uint32_t, storage_get_chunk, const char*, uint32_t, uint8_t*, uint32_t);
 
 void setUp(void)
 {
-  
+  RESET_FAKE(storage_init);
+  RESET_FAKE(storage_get_file_size);
+  RESET_FAKE(storage_get_chunk);
 }
 
 void tearDown(void)
 {
-  
+
 }
 
 void test_image_init(void)
 {
   image_t objL_image = (image_t){ 0 };
 
+  storage_get_file_size_fake.return_val = 100;
+
   image_init(&objL_image, "firmware.bin");
 
-  TEST_ASSERT_EQUAL(objL_image.u32_firmware_size, objL_image.obj_img_hdr.u32_data_size);
+  TEST_ASSERT_EQUAL_UINT32(objL_image.u32_file_size, storage_get_file_size_fake.return_val);
 }
+
