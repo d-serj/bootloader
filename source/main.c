@@ -61,12 +61,6 @@ int main(void)
   }
   */
 
-  usart_deinit(&objS_uart4);
-  systick_deinit();
-  rcc_periph_clock_disable(RCC_GPIOC);
-  rcc_periph_clock_disable(RCC_GPIOB);
-  rcc_periph_clock_disable(RCC_GPIOA);
-  rcc_osc_off(RCC_HSI);
 
   // 1. Check flags
   // 2. Load app or go to update
@@ -81,6 +75,13 @@ int main(void)
   image_t objL_image;
   image_init(&objL_image, "firmware.bin");
   image_validate(&objL_image);
+
+  usart_deinit(&objS_uart4);
+  systick_deinit();
+  rcc_periph_clock_disable(RCC_GPIOC);
+  rcc_periph_clock_disable(RCC_GPIOB);
+  rcc_periph_clock_disable(RCC_GPIOA);
+  rcc_osc_off(RCC_HSI);
   
   for(;;);
 
