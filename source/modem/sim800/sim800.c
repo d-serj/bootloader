@@ -19,13 +19,13 @@ bool sim800_power_on(void)
   }
 
   gpio_set(SIM800_PWR_OFF_GPIO_Port, SIM800_PWR_OFF_Pin);
-  delay(10);
+  delay(1000);
   gpio_set(SIM800_PWR_KEY_GPIO_Port, SIM800_PWR_KEY_Pin);
-  delay(1100);
+  delay(1600);
   gpio_clear(SIM800_PWR_KEY_GPIO_Port, SIM800_PWR_KEY_Pin);
 
   // Wait till SIM800 will be activated
-  delay(2500);
+  delay(3000);
 
   // Check SIM800 status pin
   return !!gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin);

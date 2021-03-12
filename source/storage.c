@@ -31,8 +31,8 @@ void storage_init(void)
 {
   usart_setup(&objS_usart2, eUART2);
   sim800_power_on();
-  usart_send_string(&objS_usart2, "ATE\r\n");
-  delay(1);
+  usart_send_string(&objS_usart2, "ATE1\r\n");
+  delay(1000);
   usart_flush(&objS_usart2);
 }
 
@@ -87,6 +87,8 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
 
   snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "%s%s\r\n+FSFLSIZE: ", cPL_cmd, cPL_file_name);
   usart_send_string(&objS_usart2, cPL_buff);
+  
+  delay(100);
 
   if (storage_compare_echo(cPL_buff, strlen(cPL_buff)) == false)
   {
@@ -97,7 +99,7 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
   uint32_t u32L_idx = 0;
   uint8_t u8L_byte  = 0;
   // Get file size
-  while (usart_get_byte(&objS_usart2, &u8L_byte, 10))
+  while (usart_get_byte(&objS_usart2, &u8L_byte, 100))
   {
     cPL_buff[u32L_idx] = (char)u8L_byte;
 
@@ -126,7 +128,7 @@ bool storage_compare_echo(const char *cPL_cmd, uint32_t u32L_cmd_len)
   uint32_t u32L_idx = 0;
   char cL_input     = '\0';
 
-  while (usart_get_byte(&objS_usart2, (uint8_t*)&cL_input, 10))
+  while (usart_get_byte(&objS_usart2, (uint8_t*)&cL_input, 100))
   {
     if (cPL_cmd[u32L_idx] == cL_input)
     {
