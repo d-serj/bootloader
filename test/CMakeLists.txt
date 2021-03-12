@@ -38,12 +38,9 @@ endif(NOT Ruby_FOUND)
 set(MAIN_PROJ_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../source)
 
 set(MAIN_PROJ_SOURCES
-  ${MAIN_PROJ_PATH}/drivers/usart_driver.c
   ${MAIN_PROJ_PATH}/utilities/ringbuffer.c
   ${MAIN_PROJ_PATH}/modem/sim800/sim800.c
-  ${MAIN_PROJ_PATH}/crc32.c
-  ${MAIN_PROJ_PATH}/image.c
-  ${MAIN_PROJ_PATH}/storage.c
+  ${MAIN_PROJ_PATH}/crc32.c  
 )
 
 set(UNIT_TEST_STUBS
@@ -52,12 +49,6 @@ set(UNIT_TEST_STUBS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/gpio.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/rcc.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/delay.c
-)
-
-set(UNIT_TEST_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_storage.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_usart_driver.c
 )
 
 set(INCLUDES_PATH
@@ -69,44 +60,68 @@ set(INCLUDES_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/Unity
 )
 
-macro(add_test_executable FILENAME)
-  add_executable(${FILENAME})
+macro(add_test_executable TEST_NAME TEST_SOURCES)
+  add_executable(${TEST_NAME})
 
   add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}_Runner.c
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${TEST_NAME}_Runner.c
     PRE_BUILD
-    COMMAND ${Ruby_EXECUTABLE} generate_test_runner.rb ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}.c
-    COMMENT "Generating test runner for ${FILENAME}.c ..."
+    COMMAND ${Ruby_EXECUTABLE} generate_test_runner.rb ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${TEST_NAME}.c
+    COMMENT "Generating test runner for ${TEST_NAME}.c ..."
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Unity/auto
   )
-  
+
   target_sources(
-    ${FILENAME}
+    ${TEST_NAME}
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${FILENAME}_Runner.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/${TEST_NAME}_Runner.c
+    ${TEST_SOURCES}
     ${MAIN_PROJ_SOURCES}
     ${UNIT_TEST_STUBS}
   )
 
-  target_link_libraries(${FILENAME} PRIVATE unity)
-  target_include_directories(${FILENAME} PRIVATE ${INCLUDES_PATH})
-  target_compile_definitions(${FILENAME} PRIVATE UTEST)
-  target_compile_options(${FILENAME} PRIVATE -O0 -g3)
-  add_test(NAME ${FILENAME} COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/${FILENAME})
+  target_link_libraries(${TEST_NAME} PRIVATE unity)
+  target_include_directories(${TEST_NAME} PRIVATE ${INCLUDES_PATH})
+  target_compile_definitions(${TEST_NAME} PRIVATE UTEST)
+  target_compile_options(${TEST_NAME} PRIVATE -O0 -g3)
+  add_test(NAME ${TEST_NAME} COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/${TEST_NAME})
 
-  #add_custom_command(
-  #  TARGET ${FILENAME}
-  #  POST_BUILD
-  #  COMMAND ${FILENAME}${CMAKE_EXECUTABLE_SUFFIX}
-  #  COMMENT "Running ${FILENAME} unit tests"
-  #  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/
-  #)
+  add_custom_command(
+    TARGET ${TEST_NAME}
+    POST_BUILD
+    COMMAND ${TEST_NAME}${CMAKE_EXECUTABLE_SUFFIX}
+    COMMENT "Running ${TEST_NAME} unit tests"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/
+  )
 endmacro(add_test_executable)
 
-foreach(TEST_SRC ${UNIT_TEST_SOURCES})
-  GET_FILENAME_COMPONENT(UT_FILENAME ${TEST_SRC} NAME_WE)
-  add_test_executable(${UT_FILENAME})
-endforeach(TEST_SRC ${UNIT_TEST_SOURCES})
-
 enable_testing()
+
+set(TEST_USART_DRIVER
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_usart_driver.c
+  ${MAIN_PROJ_PATH}/drivers/usart_driver.c
+)
+
+set(TEST_IMAGE
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_image.c
+  ${MAIN_PROJ_PATH}/image.c
+)
+
+set(TEST_STORAGE
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_storage.c
+  ${MAIN_PROJ_PATH}/storage.c
+  ${MAIN_PROJ_PATH}/drivers/usart_driver.c
+)
+
+list(GET TEST_USART_DRIVER 0 UNIT_TEST_SRC)
+GET_FILENAME_COMPONENT(UT_TEST_NAME ${UNIT_TEST_SRC} NAME_WE)
+add_test_executable(${UT_TEST_NAME} "${TEST_USART_DRIVER}")
+
+#list(GET TEST_IMAGE 0 UNIT_TEST_SRC)
+#GET_FILENAME_COMPONENT(UT_TEST_NAME ${UNIT_TEST_SRC} NAME_WE)
+#add_test_executable(${UT_TEST_NAME} "${TEST_IMAGE}")
+
+list(GET TEST_STORAGE 0 UNIT_TEST_SRC)
+GET_FILENAME_COMPONENT(UT_TEST_NAME ${UNIT_TEST_SRC} NAME_WE)
+add_test_executable(${UT_TEST_NAME} "${TEST_STORAGE}")
+
