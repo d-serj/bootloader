@@ -40,7 +40,9 @@ void delay(uint64_t u64L_duration)
 {
   const uint64_t u64L_until = millis() + u64L_duration;
   while (millis() < u64L_until)
-    ;
+  {
+    __asm__("nop");
+  };
 }
 
 /**
