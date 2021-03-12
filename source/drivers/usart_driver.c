@@ -162,8 +162,7 @@ void usart2_isr(void)
   if (((USART2_CR1 & USART_CR1_RXNEIE) != 0)
     && ((USART2_SR & USART_SR_RXNE) != 0))
   {
-    const uint8_t u8L_data = (uint8_t)usart_recv(USART2);
-    ring_buffer_queue(objSP_usart2_ring_buff, u8L_data);
+    ring_buffer_queue(objSP_usart2_ring_buff, (uint8_t)usart_recv(USART2));
   }
 }
 
