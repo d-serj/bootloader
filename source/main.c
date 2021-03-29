@@ -16,6 +16,10 @@
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
+#include "utilities/toolbox.h"
+#include "drivers/flash.h"
+#include "storage.h"
+#include "memory_map.h"
 #include "image.h"
 
 static usart_instance_t objS_uart4;
@@ -53,14 +57,6 @@ int main(void)
   gpio_setup();
 
   usart_setup(&objS_uart4, eUART4);
-/*
-  while (*objS_uart4.u8P_data_received == 0)
-  {
-    gpio_toggle(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
-    delay(100);
-  }
-  */
-
 
   // 1. Check flags
   // 2. Load app or go to update
@@ -73,8 +69,25 @@ int main(void)
   // 6. Image start
   //image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
   image_t objL_image;
-  image_init(&objL_image, "firmware.bin");
-  image_validate(&objL_image);
+  storage_init();
+  image_open(&objL_image, "firmware.bin");
+  if (image_validate(&objL_image))
+  {
+    image_open(&objL_image, "firmware.bin");
+    // write image
+    uint8_t u8PL_buff[256] = { 0 };
+    while(1)
+    {
+      const uint32_t u32L_bytes_read = image_read(&objL_image, u8PL_buff, ARRAY_SIZE(u8PL_buff));
+      if (u32L_bytes_read != 0)
+      {
+        // TODO add offset for firmware writing
+        flash_program_data((uint32_t)&__app_start__, u8PL_buff, u32L_bytes_read);
+      }
+    }
+
+  }
+
 
   usart_deinit(&objS_uart4);
   systick_deinit();
