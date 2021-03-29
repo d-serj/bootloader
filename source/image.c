@@ -26,16 +26,23 @@ bool image_header_check(const image_hdr_t *objPL_img_hdr);
 bool image_compare_crc32(image_t *objPL_this);
 #endif // UTEST
 
-void image_init(image_t *objPL_this, const char *cPL_filename)
+int8_t image_open(image_t *objPL_this, const char *cPL_filename)
 {
   objPL_this->cP_file_name    = cPL_filename;
   objPL_this->obj_img_hdr     = (image_hdr_t){ 0 };
   objPL_this->u32_read_offset = 0;
 
-  storage_init();
+  uint32_t u32L_file_size = 0;
+  if (storage_get_file_size(objPL_this->cP_file_name, &u32L_file_size) != eStorageOk)
+  {
+    return -1;
+  }
 
-  objPL_this->u32_file_size     = storage_get_file_size(objPL_this->cP_file_name);
+  objPL_this->u32_file_size     = u32L_file_size;
   objPL_this->u32_firmware_size = objPL_this->u32_file_size - sizeof(image_hdr_t);
+  image_header_get(objPL_this);
+
+  return 0;
 }
 
 bool image_header_check(const image_hdr_t *objPL_img_hdr)

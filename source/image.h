@@ -21,7 +21,7 @@ typedef struct
   uint32_t   u32_firmware_size; ///< The size of firmware part
 } image_t;
  
-void image_init(image_t *objPL_this, const char *cPL_filename);
+int8_t image_open(image_t *objPL_this, const char *cPL_filename);
 
 /**
  * @brief Read image data from the storage
