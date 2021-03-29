@@ -76,7 +76,7 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
   return u32L_idx;
 }
 
-uint32_t storage_get_file_size(const char *cPL_file_name)
+int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32PL_file_size)
 {
   ASSERT(cPL_file_name != NULL);
 
@@ -93,7 +93,7 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
   if (storage_compare_echo(cPL_buff, strlen(cPL_buff)) == false)
   {
     usart_flush(&objS_usart2);
-    return 0;
+    return eStorageError;
   }
 
   uint32_t u32L_idx = 0;
@@ -109,13 +109,14 @@ uint32_t storage_get_file_size(const char *cPL_file_name)
     {
       ASSERT(0);
       usart_flush(&objS_usart2);
-      return 0;
+      return eStorageError;
     }
   }
 
   cPL_buff[u32L_idx] = '\0';
-
-  return (uint32_t)atoi(cPL_buff);
+  *u32PL_file_size = (uint32_t)atoi(cPL_buff);
+  
+  return eStorageOk;
 }
 
 bool storage_compare_echo(const char *cPL_cmd, uint32_t u32L_cmd_len)

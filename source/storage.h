@@ -8,6 +8,11 @@
 
 #include <stdint.h>
 
+enum StorageError
+{
+  eStorageOk    = 0,
+  eStorageError = 1,
+};
 
 /**
  * @brief Initialize storage
@@ -37,8 +42,9 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
  * @brief Get file size
  * 
  * @param cPL_file_name .. filename to give the size of
- * @return uint32_t size of the file, 0 if file was not found
+ * @param u32L_file_size .. pointer to the variable where file size will be written
+ * @return error code from StorageError enumeration
  */
-uint32_t storage_get_file_size(const char *cPL_file_name);
+int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32L_file_size);
 
 #endif // STORAGE_H_
