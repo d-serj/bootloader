@@ -6,8 +6,8 @@
 #ifndef BOOTLOADER_H_
 #define BOOTLOADER_H_
 
-#include "img-header.h"
+#include <stdint.h>
 
-void image_start(const uint8_t *u8PL_image_data, uint32_t u32L_data_size) __attribute__((noreturn));
+void image_start(uint32_t u32L_vector_addr) __attribute__((noreturn));
 
 #endif // BOOTLOADER_H_
