@@ -13,7 +13,6 @@ target_sources(
   delay.c
   main.c
   image.c
-  firmware.c
   storage.c
   drivers/usart_driver.c
   drivers/flash.c
