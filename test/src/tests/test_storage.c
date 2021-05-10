@@ -72,7 +72,8 @@ void test_storage_get_file_size(void)
 
   usart_accumulate_data((const uint8_t*)cP_buff, strlen(cPL_cmd));
 
-  const uint32_t u32L_result = storage_get_file_size("firmware.bin");
+  uint32_t u32L_result = 0;
+  storage_get_file_size("firmware.bin", &u32L_result);
 
   TEST_ASSERT_EQUAL_UINT32(20, u32L_result);
 }
