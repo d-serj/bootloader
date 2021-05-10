@@ -49,6 +49,7 @@ set(UNIT_TEST_STUBS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/gpio.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/libopencm3/stm32/rcc.c
   ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/delay.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/stubs/firmware.c
 )
 
 set(INCLUDES_PATH
