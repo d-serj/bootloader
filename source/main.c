@@ -16,13 +16,12 @@
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
+#include "comhdlc/comhdlc.h"
 #include "utilities/toolbox.h"
 #include "drivers/flash.h"
 #include "storage.h"
 #include "memory_map.h"
 #include "image.h"
-
-static usart_instance_t objS_uart4;
 
 static void clock_setup(void)
 {
@@ -55,8 +54,13 @@ int main(void)
   clock_setup();
   systick_setup();
   gpio_setup();
+  comhdlc_init();
 
-  usart_setup(&objS_uart4, eUART4);
+  uint16_t u16L_comhdlc_command = 0;
+  if (comhdlc_get_command(&u16L_comhdlc_command, 1000))
+  {
+    
+  }
 
   // 1. Check flags
   // 2. Load app or go to update
@@ -88,8 +92,7 @@ int main(void)
 
   }
 
-
-  usart_deinit(&objS_uart4);
+  comhdlc_deinit();
   systick_deinit();
   rcc_periph_clock_disable(RCC_GPIOC);
   rcc_periph_clock_disable(RCC_GPIOB);
