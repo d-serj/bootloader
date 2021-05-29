@@ -45,6 +45,6 @@ uint32_t storage_get_chunk(const char *cPL_file_name,
  * @param u32L_file_size .. pointer to the variable where file size will be written
  * @return error code from StorageError enumeration
  */
-int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32L_file_size);
+int8_t storage_get_file_size(const char *cPL_file_name, uint32_t *u32L_file_size);
 
 #endif // STORAGE_H_
