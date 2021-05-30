@@ -68,6 +68,20 @@ bool comhdlc_get_data(uint8_t *u8PL_buff, uint16_t u16L_buff_size, uint32_t u32L
   return bL_ret;
 }
 
+bool comhdlc_is_connected(uint32_t u32L_timeout)
+{
+  static const uint8_t u8PL_handshake[]         = { 0xBE, 0xEF };
+  uint8_t u8PL_buff[ARRAY_SIZE(u8PL_handshake)] = { 0 };
+  bool bL_ret                                   = false;
+
+  if (comhdlc_get_data(u8PL_buff, ARRAY_SIZE(u8PL_handshake), u32L_timeout))
+  {
+    bL_ret = (0 == memcmp(u8PL_buff, u8PL_handshake, ARRAY_SIZE(u8PL_handshake)));
+  }
+
+  return bL_ret;
+}
+
 static void comhdlc_send_byte(uint8_t u8L_byte)
 {
   usart_send_raw(&objS_uart4, &u8L_byte, 1);
