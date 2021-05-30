@@ -114,7 +114,7 @@ int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32PL_file_siz
   }
 
   cPL_buff[u32L_idx] = '\0';
-  *u32PL_file_size = (uint32_t)atoi(cPL_buff);
+  *u32PL_file_size   = (uint32_t)atoi(cPL_buff);
   
   return eStorageOk;
 }
