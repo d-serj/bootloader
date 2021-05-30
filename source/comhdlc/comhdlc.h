@@ -6,6 +6,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define COMHDLC_RESPONSE  (0xBEEF)
+
+enum eComHdlcCommands
+{
+  eComHdlcResponseError = (1 << 0),
+  eComHdlcResponseReady = (1 << 1),
+};
+
 /**
  * @brief Init comhdlc
  */
@@ -16,4 +24,4 @@ void comhdlc_init(void);
  */
 void comhdlc_deinit(void);
 
-bool comhdlc_get_command(uint16_t *u16PL_command, uint32_t u32L_timeout);
+bool comhdlc_get_data(uint8_t *u8PL_buff, uint16_t u16L_buff_size, uint32_t u32L_timeout);

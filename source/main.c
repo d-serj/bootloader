@@ -57,7 +57,7 @@ int main(void)
   comhdlc_init();
 
   uint16_t u16L_comhdlc_command = 0;
-  if (comhdlc_get_command(&u16L_comhdlc_command, 1000))
+  if (comhdlc_get_data((uint8_t*)&u16L_comhdlc_command, sizeof(uint16_t), 1000))
   {
     
   }
