@@ -1,3 +1,7 @@
+/**
+ * @file minihdlc.h
+ */
+
 #ifndef MINIHDLC_H
 #define MINIHDLC_H
 

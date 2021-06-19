@@ -56,10 +56,11 @@ int main(void)
   gpio_setup();
   comhdlc_init();
 
-  uint16_t u16L_comhdlc_command = 0;
-  if (comhdlc_get_data((uint8_t*)&u16L_comhdlc_command, sizeof(uint16_t), 1000))
+    image_t objL_image;
+
+  if (comhdlc_is_connected(1000))
   {
-    
+      image_open(&objL_image, "firmware.bin");
   }
 
   // 1. Check flags
@@ -72,7 +73,7 @@ int main(void)
   // 8. Check CRC32
   // 6. Image start
   //image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
-  image_t objL_image;
+
   storage_init();
   image_open(&objL_image, "firmware.bin");
   if (image_validate(&objL_image))
