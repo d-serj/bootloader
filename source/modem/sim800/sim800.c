@@ -9,8 +9,6 @@
 #include <pins.h>
 #include <delay.h>
 
-#include <modem/at_command/at_command.h>
-
 bool sim800_power_on(void)
 {
   if (gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin))
