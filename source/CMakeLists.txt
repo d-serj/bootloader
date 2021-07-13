@@ -10,6 +10,7 @@ target_sources(
   utilities/ringbuffer.c
   bootloader.c
   crc32.c
+  com.c
   delay.c
   main.c
   image.c
