@@ -214,7 +214,6 @@
 bool _TF_FN TF_InitStatic(TinyFrame *tf, TF_Peer peer_bit)
 {
     if (tf == NULL) {
-        TF_Error("TF_InitStatic() failed, tf is null.");
         return false;
     }
 
@@ -236,7 +235,6 @@ TinyFrame * _TF_FN TF_Init(TF_Peer peer_bit)
 {
     TinyFrame *tf = malloc(sizeof(TinyFrame));
     if (!tf) {
-        TF_Error("TF_Init() failed, out of memory.");
         return NULL;
     }
 
