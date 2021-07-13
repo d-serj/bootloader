@@ -7,10 +7,13 @@
 
 #include <stdint.h>
 
+/** Callback to be called from Sys_tick handler */
+typedef void (*systick_clbk_t)(void *PL_user_data);
+
 /**
  * @brief Init systick for delay purposes
  */
-void systick_init(void);
+void systick_init(systick_clbk_t objPL_callback, void *PL_user_data);
 
 /**
  * @brief Deinit systick

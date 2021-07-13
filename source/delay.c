@@ -2,6 +2,8 @@
  * @file delay.c
  */
 
+#include <stddef.h>
+
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/cm3/nvic.h"
 #include "libopencm3/cm3/systick.h"
@@ -9,8 +11,10 @@
 #include "delay.h"
 
 static volatile uint64_t u64S_millis = 0;
+static systick_clbk_t objPS_callback = NULL;
+static void *PS_user_data            = NULL;
 
-void systick_init(void)
+void systick_init(systick_clbk_t objPL_callback, void *PL_user_data)
 {
   // Set the systick clock source to our main clock
   systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
@@ -50,6 +54,11 @@ void delay(uint64_t u64L_duration)
  */
 void sys_tick_handler(void)
 {
+  if (objPS_callback)
+  {
+    objPS_callback(PS_user_data);
+  }
+
   // Increment our monotonic clock
   ++u64S_millis;
 }
