@@ -12,7 +12,7 @@
 #define FLASH_PAGE_SIZE          0x800
 #define FLASH_WRONG_DATA_WRITTEN 0x80
 
-uint32_t flash_program_data(uint32_t u32L_start_address,
+int8_t flash_program_data(uint32_t u32L_start_address,
   const uint8_t *u8PL_input_data, uint16_t u16L_num_elements)
 {
   uint32_t u32L_current_address = u32L_start_address;

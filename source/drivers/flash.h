@@ -17,7 +17,7 @@
  * @return status of the operation: bit 0: busy, bit 2: programming error, bit 3: wrong data written,
  *   bit 4: write protect error, bit 5: end of operation.
  */
-uint32_t flash_program_data(uint32_t u32L_start_address,
+int8_t flash_program_data(uint32_t u32L_start_address,
   const uint8_t *u8PL_input_data, uint16_t u16L_num_elements);
 
 /**
