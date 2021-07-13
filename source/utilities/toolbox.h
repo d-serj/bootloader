@@ -7,6 +7,11 @@
 #define TOOLBOX_H_
 
 /**
+ * @brief Macro to set the result of computation or variable as unused
+ */
+#define UNUSED(x) ((void)x)
+
+/**
  * @brief Number of elements within an array
  */
 #ifndef ARRAY_SIZE
