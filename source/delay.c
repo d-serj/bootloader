@@ -10,7 +10,7 @@
 
 static volatile uint64_t u64S_millis = 0;
 
-void systick_setup(void)
+void systick_init(void)
 {
   // Set the systick clock source to our main clock
   systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);

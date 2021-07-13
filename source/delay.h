@@ -10,7 +10,7 @@
 /**
  * @brief Init systick for delay purposes
  */
-void systick_setup(void);
+void systick_init(void);
 
 /**
  * @brief Deinit systick

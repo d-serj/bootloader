@@ -52,7 +52,7 @@ static void gpio_setup(void)
 int main(void)
 {
   clock_setup();
-  systick_setup();
+  systick_init();
   gpio_setup();
   comhdlc_init();
 
