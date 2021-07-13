@@ -10,6 +10,7 @@
 #include "utilities/toolbox.h"
 #include "comhdlc/minihdlc.h"
 #include "drivers/usart_driver.h"
+#include "system/assert.h"
 #include "delay.h"
 
 enum eComHdlcCommands
@@ -68,23 +69,30 @@ void com_systick_clbk(void *PL_user_data)
   TF_Tick(&tf);
 }
 
-static TF_Result com_listener_handshake(TinyFrame *tf, TF_Msg *msg)
+static TF_Result com_listener_handshake(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
-  if (msg->type == eComHdlcAnswer_HandShake)
+  if (objPL_msg->type == eComHdlcAnswer_HandShake)
   {
+    static const uint8_t response = eComHdlcAnswer_HandShake;
+    objPL_msg->data               = &response;
+    objPL_msg->len                = 1;
+    TF_Respond(objPL_tf, objPL_msg);
+
     bS_is_master_connected = true;
+
     return TF_CLOSE;
   }
 
   return TF_NEXT;
 }
 
-static TF_Result com_listener_file_write(TinyFrame *tf, TF_Msg *msg)
+static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
-  if (msg->type == eCmdWriteFile)
+  UNUSED(objPL_tf);
+
+  if (objPL_msg->type == eCmdWriteFile)
   {
-    bS_is_master_connected = true;
-    return TF_CLOSE;
+    return TF_STAY;
   }
 
   return TF_NEXT;
