@@ -67,7 +67,7 @@ if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libopencm3)
 endif()
 
 execute_process(
-  COMMAND           make TARGETS=stm32/f1
+  COMMAND           make TARGETS=stm32/f1 FP_FLAGS="-mfloat-abi=soft" CFLAGS="-O1"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libopencm3
 )
 
