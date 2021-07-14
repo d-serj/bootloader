@@ -16,7 +16,7 @@
 
 #include "img-header.h"
 #include "image.h"
-#include "storage.h"
+#include "storage_sim800.h"
 
 #ifndef UTEST
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
@@ -30,7 +30,7 @@ int8_t image_open(image_t *objPL_this, const char *cPL_filename)
 {
   objPL_this->cP_file_name    = cPL_filename;
   objPL_this->obj_img_hdr     = (image_hdr_t){ 0 };
-  objPL_this->u32_read_offset = 0;
+  objPL_this->u32_offset = 0;
 
   uint32_t u32L_file_size = 0;
   if (storage_get_file_size(objPL_this->cP_file_name, &u32L_file_size) != eStorageOk)
@@ -58,7 +58,7 @@ void image_header_get(image_t *objPL_this)
   storage_get_chunk(objPL_this->cP_file_name, 0, u8PL_buff, sizeof(image_hdr_t));
   memcpy(&objPL_this->obj_img_hdr, u8PL_buff, sizeof(image_hdr_t));
   // Set read offset
-  objPL_this->u32_read_offset = sizeof(image_hdr_t);
+  objPL_this->u32_offset = sizeof(image_hdr_t);
 }
 
 bool image_validate(image_t *objPL_this)
@@ -96,7 +96,7 @@ bool image_compare_crc32(image_t *objPL_this)
 uint32_t image_read(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size)
 {
   const uint32_t u32L_remaining_bytes =
-    objPL_this->u32_read_offset - objPL_this->u32_firmware_size;
+    objPL_this->u32_offset - objPL_this->u32_firmware_size;
 
   if (u32L_remaining_bytes == 0)
   {
@@ -106,8 +106,13 @@ uint32_t image_read(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_
   const uint32_t u32L_size_to_get = 
     (u32L_remaining_bytes > u32L_buff_size) ? u32L_buff_size : u32L_remaining_bytes;
   const uint32_t u32L_num_bytes_read = 
-    storage_get_chunk(objPL_this->cP_file_name, objPL_this->u32_read_offset, u8PL_buff, u32L_size_to_get);
-  objPL_this->u32_read_offset += u32L_size_to_get;
+    storage_get_chunk(objPL_this->cP_file_name, objPL_this->u32_offset, u8PL_buff, u32L_size_to_get);
+  objPL_this->u32_offset += u32L_size_to_get;
 
   return u32L_num_bytes_read;
+}
+
+int8_t image_write(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size)
+{
+  return 0;
 }

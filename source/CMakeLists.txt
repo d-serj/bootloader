@@ -15,6 +15,8 @@ target_sources(
   main.c
   image.c
   storage.c
+  storage_internal.c
+  storage_sim800.c
   drivers/usart_driver.c
   drivers/flash.c
   #drivers/bkp.c

@@ -48,6 +48,8 @@ static int8_t storage_internal_open(storage_t *objPL_this, const char *cPL_file_
 static int8_t storage_internal_close(storage_t *objPL_this)
 {
   UNUSED(objPL_this);
+  objPL_this->u8_mode    = 0;
+  objPL_this->u32_offset = 0;
   return 0;
 }
 

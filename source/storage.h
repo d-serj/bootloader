@@ -9,8 +9,8 @@
 
 enum eStorageMode
 {
-  eStorageModeRead  = 0,
-  eStorageModeWrite = 1,
+  eStorageModeRead  = 1,
+  eStorageModeWrite = 2,
 };
 
 typedef struct storage storage_t;

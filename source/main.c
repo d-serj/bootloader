@@ -19,13 +19,14 @@
 #include "comhdlc/comhdlc.h"
 #include "utilities/toolbox.h"
 #include "drivers/flash.h"
-#include "storage.h"
+#include "storage_sim800.h"
 #include "memory_map.h"
 #include "image.h"
+#include "com.h"
 
 static void clock_setup(void)
 {
-  rcc_clock_setup_in_hsi_out_24mhz();
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_24MHZ]);
 
   /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
@@ -52,15 +53,15 @@ static void gpio_setup(void)
 int main(void)
 {
   clock_setup();
-  systick_init();
+  systick_init(com_systick_clbk, NULL);
   gpio_setup();
-  comhdlc_init();
+  com_init();
 
-    image_t objL_image;
+  image_t objL_image = { 0 };
 
-  if (comhdlc_is_connected(1000))
+  if (com_is_master_connected(1000))
   {
-      image_open(&objL_image, "firmware.bin");
+    image_open(&objL_image, "firmware.bin");
   }
 
   // 1. Check flags

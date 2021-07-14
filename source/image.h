@@ -16,7 +16,7 @@ typedef struct
 {
   image_hdr_t obj_img_hdr;      ///< Image header
   const char *cP_file_name;     ///< File name
-  uint32_t   u32_read_offset;   ///< Read offset
+  uint32_t   u32_offset;        ///< Read / write offset
   uint32_t   u32_file_size;     ///< File size on the storage
   uint32_t   u32_firmware_size; ///< The size of firmware part
 } image_t;
@@ -31,6 +31,15 @@ int8_t image_open(image_t *objPL_this, const char *cPL_filename);
  * @return uint32_t number of bytes that have been read
  */
 uint32_t image_read(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size);
+
+/**
+ * @brief Write image data to the memory
+ * @param objPL_this .. pointer to image instance
+ * @param u8PL_buff .. pointer to the buffer with data
+ * @param u32L_buff_size .. buffer size
+ * @return int8_t 0 in case of success, != 0 otherwise
+ */
+int8_t image_write(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size);
 
 /**
  * @brief Get image header
