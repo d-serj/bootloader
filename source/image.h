@@ -22,7 +22,7 @@ typedef struct
   uint32_t   u32_file_size;     ///< File size on the storage
   uint32_t   u32_firmware_size; ///< The size of firmware part
 } image_t;
- 
+
 int8_t image_open(image_t *objPL_this, storage_t *objPL_storage, const char *cPL_filename);
 
 int8_t image_flash(image_t *objPL_this, storage_t *objPL_internal);

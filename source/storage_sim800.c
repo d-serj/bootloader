@@ -35,11 +35,12 @@ static storage_sim800_t objS_stor_sim800;
  * @param u32L_chunk_size .. chunk size to read
  * @return uint32_t number of read bytes
  */
-static uint32_t storage_get_chunk(storage_sim800_t *objPL_this, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size);
+
+//static uint32_t storage_get_chunk(storage_sim800_t *objPL_this, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size);
 
 int8_t sim800_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L_mode);
 int8_t sim800_close(storage_t *objPL_this);
-int8_t sim800_write(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
+int8_t sim800_write(storage_t *objPL_this, const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
 int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read);
 
 storage_t *storage_sim800_init_static(void)
@@ -72,6 +73,20 @@ int8_t sim800_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L
   objPL_sim800->cP_file_name = cPL_file_name;
   objPL_this->u8_mode        = u8L_mode;
   objPL_this->u32_offset     = 0;
+
+  char cPL_str[64] = { 0 };
+
+  snprintf(cPL_str, sizeof(cPL_str), "AT+FSDEL=%s\r\n", objPL_sim800->cP_file_name);
+  usart_send_string(objPL_sim800->objP_uart, cPL_str);
+  delay(100);
+  usart_flush(objPL_sim800->objP_uart);
+
+  snprintf(cPL_str, sizeof(cPL_str), "AT+FSCREATE=%s\r\n", objPL_sim800->cP_file_name);
+  usart_send_string(objPL_sim800->objP_uart, cPL_str);
+  delay(100);
+  usart_flush(objPL_sim800->objP_uart);
+
+  return 0;
 }
 
 int8_t sim800_close(storage_t *objPL_this)
@@ -81,18 +96,78 @@ int8_t sim800_close(storage_t *objPL_this)
   sim800_power_off();
   objPL_this->u8_mode    = 0;
   objPL_this->u32_offset = 0;
+  
+  usart_send_string(objPL_sim800->objP_uart, "AT+FSLS=C:\\User\\\r\n");
+  delay(100);
+  usart_flush(objPL_sim800->objP_uart);
+
+  return 0;
 }
 
-int8_t sim800_write(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written)
+int8_t sim800_write(storage_t *objPL_this, const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written)
 {
+  char cPL_str[64] = { 0 };
+  storage_sim800_t *objPL_stor = (storage_sim800_t*)objPL_this;
 
+  if (u8PL_buff == NULL || objPL_stor->cP_file_name == NULL)
+  {
+    ASSERT(0);
+    return -1;
+  }
+
+  snprintf(cPL_str, sizeof(cPL_str), "AT+FSWRITE=%s,1,%ld,5\r\n", objPL_stor->cP_file_name, u32L_buff_size);
+  usart_send_string(objPL_stor->objP_uart, cPL_str);
+  delay(10);
+  usart_flush(objPL_stor->objP_uart);
+
+  usart_send_raw(objPL_stor->objP_uart, u8PL_buff, u32L_buff_size);
+
+  // Wait until file will write
+  delay(100);
+  usart_flush(objPL_stor->objP_uart);
+
+  if (u32PL_bytes_written)
+  {
+    *u32PL_bytes_written = u32L_buff_size;
+  }
+	
+	return 0;
 }
 
 int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read)
 {
+  storage_sim800_t *objPL_store = (storage_sim800_t*)objPL_this;
+  const uint8_t u8L_mode = (objPL_this->u32_offset == 0) ? 0 : 1;
+  char cPL_buff[128]     = { 0 };
+  
+  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
+    objPL_store->cP_file_name, u8L_mode, u32L_bytes_to_read, objPL_this->u32_offset);
+  usart_send_string(objPL_store->objP_uart, cPL_buff);
+  delay(20);
+  usart_flush(objPL_store->objP_uart);
 
+/*
+  if (storage_compare_echo(objPL_this, cPL_buff, strlen(cPL_buff)) == false)
+  {
+    usart_flush(objPL_this->objP_uart);
+    return 0;
+  }
+  */
+
+  uint32_t u32L_idx = 0;
+  uint8_t u8L_data  = 0;
+
+  while (u32L_idx <= u32L_bytes_to_read)
+  {
+    usart_get_byte(objPL_store->objP_uart, &u8L_data, 10);
+    u8PL_buff[u32L_idx] = u8L_data;
+    ++u32L_idx;
+  }
+
+  return 0;
 }
 
+#if 0
 uint32_t storage_get_chunk(storage_sim800_t *objPL_this, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size)
 {
   ASSERT(u8PL_chunk_buf != NULL);
@@ -202,3 +277,18 @@ bool storage_compare_echo(storage_sim800_t *objPL_this, char *cPL_cmd, uint32_t 
 
   return bL_return;
 }
+
+bool storage_sim800_wait_response(storage_sim800_t *objPL_this, char **cPL_expected, uint8_t u8L_ans_num, uint32_t u32L_timeout)
+{
+  bool bL_return    = false;
+  uint32_t u32L_idx = 0;
+  char cL_input     = '\0';
+
+  while (usart_get_byte(objPL_this->objP_uart, (uint8_t*)&cL_input, u32L_timeout))
+  {
+
+  }
+
+  return bL_return;
+}
+#endif

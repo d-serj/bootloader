@@ -24,7 +24,7 @@ int8_t storage_close(storage_t *objPL_this)
   return objPL_this->obj_virtual_table.close(objPL_this);
 }
 
-int8_t storage_write(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written)
+int8_t storage_write(storage_t *objPL_this, const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written)
 {
   ASSERT(objPL_this);
   ASSERT(objPL_this->obj_virtual_table.write);

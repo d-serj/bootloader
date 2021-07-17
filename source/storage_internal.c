@@ -21,7 +21,7 @@ static storage_internal_t objS_strg_internal;
 static int8_t storage_internal_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L_mode);
 static int8_t storage_internal_close(storage_t *objPL_this);
 static int8_t storage_internal_write(storage_t *objPL_this,
-  uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
+  const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
 static int8_t storage_internal_read(storage_t *objPL_this,
   uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read);
 
@@ -54,7 +54,7 @@ static int8_t storage_internal_close(storage_t *objPL_this)
 }
 
 static int8_t storage_internal_write(storage_t *objPL_this,
-  uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written)
+  const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written)
 {
   if (objPL_this->u8_mode != eStorageModeWrite)
   {

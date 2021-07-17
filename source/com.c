@@ -13,6 +13,9 @@
 #include "system/assert.h"
 #include "delay.h"
 
+#include "storage.h"
+#include "storage_sim800.h"
+
 enum eComHdlcCommands
 {
   eCmdWriteFile            = 1,
@@ -23,6 +26,7 @@ enum eComHdlcCommands
 static TinyFrame tf                = { 0 };
 static usart_instance_t objS_uart4;
 static bool bS_is_master_connected = false;
+static bool bS_finished            = false;
 
 static void comhdlc_callback(const uint8_t *u8PL_data, uint16_t u16L_data_size);
 static void comhdlc_send_byte(uint8_t u8L_byte);
@@ -88,14 +92,42 @@ static TF_Result com_listener_handshake(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 
 static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
+  static bool bSL_started         = false;
+  static storage_t objSL_storage  = { 0 };
+  static uint32_t u32SL_size_file = 0;
   UNUSED(objPL_tf);
 
   if (objPL_msg->type == eCmdWriteFile)
   {
+    if (bSL_started == false)
+    {
+      storage_open(&objSL_storage, "firmware.bin", eStorageModeCreate);
+      bSL_started = true;
+    }
+
+    uint32_t u32L_bytes_written = 0;
+
+    const int8_t s8L_ret = storage_write(&objSL_storage, objPL_msg->data, objPL_msg->len, &u32L_bytes_written);
+
+    ASSERT(s8L_ret == 0);
+    ASSERT(u32L_bytes_written == objPL_msg->len);
+
+    if (u32SL_size_file == u32L_bytes_written)
+    {
+      storage_close(&objSL_storage);
+      bS_finished = true;
+      return TF_CLOSE;
+    }
+
     return TF_STAY;
   }
 
   return TF_NEXT;
+}
+
+bool com_file_write_is_finished(void)
+{
+  return bS_finished;
 }
 
 static void comhdlc_send_byte(uint8_t u8L_byte)

@@ -113,9 +113,11 @@ uint32_t image_read(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_
 
   const uint32_t u32L_size_to_get = 
     (u32L_remaining_bytes > u32L_buff_size) ? u32L_buff_size : u32L_remaining_bytes;
-  const uint32_t u32L_num_bytes_read = 
-    storage_get_chunk(objPL_this->cP_file_name, objPL_this->u32_offset, u8PL_buff, u32L_size_to_get);
-  objPL_this->u32_offset += u32L_size_to_get;
+
+  uint32_t u32L_num_bytes_read = 0;
+  storage_read(objPL_this->objP_storage, u8PL_buff, u32L_size_to_get, &u32L_num_bytes_read);
+
+  objPL_this->u32_offset += u32L_num_bytes_read;
 
   return u32L_num_bytes_read;
 }

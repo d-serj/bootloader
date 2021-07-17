@@ -59,7 +59,8 @@ int main(void)
 
   if (com_is_master_connected(1000))
   {
-    image_write_to_storage()
+    while (com_file_write_is_finished() == false)
+      ;
   }
 
   comhdlc_deinit();
