@@ -11,22 +11,19 @@
 #include <libopencm3/cm3/vector.h>
 
 #include "img-header.h"
-#include "drivers/usart.h"
-#include "drivers/spi.h"
-#include "drivers/flash.h"
 #include "delay.h"
-#include "pins.h"
-#include "modem/sim800/sim800.h"
-#include "bootloader.h"
+#include "drivers/usart_driver.h"
 
-static usart_instance_t objS_usart2 = { .e_instance = eUART2 };
-static usart_instance_t objS_uart4  = { .e_instance = eUART4 };
+#include "pins.h"
+
+static usart_instance_t objS_usart2;
+static usart_instance_t objS_usart4;
 
 static void clock_setup(void)
 {
-  rcc_clock_setup_in_hsi_out_64mhz();
+  rcc_clock_setup_in_hsi_out_24mhz();
 
-  /* Enable GPIOC clock. */
+    /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
 
   /* Enable GPIOB clock. */
@@ -48,15 +45,24 @@ static void gpio_setup(void)
     GPIO_CNF_INPUT_FLOAT, GSM_STATUS_Pin);
 }
 
-static void start_app(void *pc, void *sp) __attribute__((naked));
-
-static void start_app(void *pc, void *sp)
+bool sim800_power_on(void)
 {
-  __asm
-  ("           \n\
-        msr msp, r1 /* load r1 into MSP */\n\
-        bx r0       /* branch to the address at r0 */\n\
-  ");
+  if (gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin))
+  {
+    return true;
+  }
+
+  gpio_set(SIM800_PWR_OFF_GPIO_Port, SIM800_PWR_OFF_Pin);
+  delay(1100);
+  gpio_set(SIM800_PWR_KEY_GPIO_Port, SIM800_PWR_KEY_Pin);
+  delay(1800);
+  gpio_clear(SIM800_PWR_KEY_GPIO_Port, SIM800_PWR_KEY_Pin);
+
+  // Wait till SIM800 will be activated
+  delay(3000);
+
+  // Check SIM800 status pin
+  return !!gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin);
 }
 
 int main(void)
@@ -64,37 +70,38 @@ int main(void)
   clock_setup();
   systick_setup();
   gpio_setup();
-  usart_setup(&objS_usart2);
-  usart_setup(&objS_uart4);
 
-  while (*objS_uart4.u8P_data_received == 0)
+  usart_setup(&objS_usart2, eUART2);
+  usart_setup(&objS_usart4, eUART4);
+
+  sim800_power_on();
+ 
+  uint8_t u8L_byte = 0;
+
+  for(;;)
   {
-    delay(1);
+    if (usart_get_byte(&objS_usart4, &u8L_byte, 10))
+    {
+      usart_send_raw(&objS_usart2, &u8L_byte, 1);
+
+      while (usart_get_byte(&objS_usart4, &u8L_byte, 10))
+      {
+        usart_send_raw(&objS_usart2, &u8L_byte, 1);
+      }
+    }
+
+    if (usart_get_byte(&objS_usart2, &u8L_byte, 10))
+    {
+      usart_send_raw(&objS_usart4, &u8L_byte, 1);
+
+      while (usart_get_byte(&objS_usart2, &u8L_byte, 10))
+      {
+        usart_send_raw(&objS_usart4, &u8L_byte, 1);
+      }
+    }
+
+    gpio_toggle(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
   }
-
-  image_hdr_t* objPL_img = (image_hdr_t*)objS_uart4.u8P_buffer;
-  
-  usart_deinit(&objS_usart2);
-  usart_deinit(&objS_uart4);
-  systick_deinit();
-
-  if (objPL_img->u16_image_magic == IMAGE_MAGIC)
-  {
-    gpio_set(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
-  }
-  
-  flash_program_data(objPL_img->u32_vector_addr, objS_uart4.u8P_buffer, objS_uart4.u16_rec_bytes);
-
-  const vector_table_t *objPL_vector =
-    (const vector_table_t *)objPL_img->u32_vector_addr;
-  start_app(objPL_vector->reset, objPL_vector->initial_sp_value);
-
-
-  //sim800_power_on();
-  //delay(2000);
-  //sim800_power_off();
-  
-  for(;;);
 
   return 0;
 }

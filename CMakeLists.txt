@@ -10,7 +10,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake
 
 set(CMAKE_BUILD_PARALLEL_LEVEL 8)
 
-set(TARGET_NAME "bootloader")
+set(TARGET_NAME "app")
 set(DEVICE stm32f105rct)
 
 project(${TARGET_NAME} C ASM)

@@ -7,17 +7,12 @@ add_executable(${TARGET_NAME} "")
 target_sources(
   ${TARGET_NAME}
   PRIVATE
-  #bootloader.c
-  crc32.c
   delay.c
   main.c
   img-header.c
-  drivers/usart.c
-  drivers/spi.c
-  drivers/flash.c
-  #drivers/bkp.c
-  modem/sim800/sim800.c
-  #modem/sim800/at_command/at_command.c
+  drivers/usart_driver.c
+  utilities/ringbuffer.c
+  system/assert.c
 )
 
 target_include_directories(

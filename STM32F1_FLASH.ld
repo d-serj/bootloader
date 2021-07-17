@@ -50,13 +50,12 @@
 */
 
 /* Specify the memory areas */
+/* Bootloadable 
 MEMORY
 {
-  ram (xrw)     : ORIGIN = 0x20000000, LENGTH = 20K
-  rom (rx)      : ORIGIN = 0x8000000, LENGTH = 0x0004000
-  header (rx)   : ORIGIN = 0x8004000, LENGTH = 0x0000100
+  ram (xrw)     : ORIGIN = 0x20000000, LENGTH = 1K
+  rom (rx)      : ORIGIN = 0x8004000, LENGTH = 2K
 }
-
 __app_start = ORIGIN(header) + LENGTH(header);
 
 SECTIONS
@@ -65,7 +64,16 @@ SECTIONS
     __image_hdr_start = .;
     KEEP (*(.image_hdr))
     __image_hdr_end = .;
-  } > header
+  } > rom
+
+  /* Vector table must be 128-bit aligned */
+/*  . = ALIGN(128); */
+/*}
+*/
+MEMORY
+{
+  ram (xrw)     : ORIGIN = 0x20000000, LENGTH = 20K
+  rom (rx)      : ORIGIN = 0x8000000, LENGTH = 64K
 }
 
 INCLUDE cortex-m-generic.ld
