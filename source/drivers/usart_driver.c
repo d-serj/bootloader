@@ -146,9 +146,15 @@ uint8_t usart_get_byte(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t
   uint8_t u8L_delay = 0;
   uint8_t u8L_ret   = 0;
 
-  while ((u8L_ret == 0) && (u8L_delay <= u8L_timeout))
+  while (u8L_delay <= u8L_timeout)
   {
     u8L_ret = ring_buffer_dequeue(&objPL_uart->obj_buffer, u8PL_byte);
+
+    if (u8L_ret > 0)
+    {
+      break;
+    }
+
     ++u8L_delay;
     delay(1);
   }
