@@ -9,43 +9,25 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "storage.h"
 #include "img-header.h"
 
 /** Image struct */
 typedef struct
 {
   image_hdr_t obj_img_hdr;      ///< Image header
+  storage_t *objP_storage; 
   const char *cP_file_name;     ///< File name
   uint32_t   u32_offset;        ///< Read / write offset
   uint32_t   u32_file_size;     ///< File size on the storage
   uint32_t   u32_firmware_size; ///< The size of firmware part
 } image_t;
  
-int8_t image_open(image_t *objPL_this, const char *cPL_filename);
+int8_t image_open(image_t *objPL_this, storage_t *objPL_storage, const char *cPL_filename);
 
-/**
- * @brief Read image data from the storage
- * @param objPL_this .. pointer to image instance
- * @param u8PL_buff .. pointer to buffer where data is going to be stored
- * @param u32L_buff_size .. buffer size
- * @return uint32_t number of bytes that have been read
- */
-uint32_t image_read(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size);
+int8_t image_flash(image_t *objPL_this, storage_t *objPL_internal);
 
-/**
- * @brief Write image data to the memory
- * @param objPL_this .. pointer to image instance
- * @param u8PL_buff .. pointer to the buffer with data
- * @param u32L_buff_size .. buffer size
- * @return int8_t 0 in case of success, != 0 otherwise
- */
-int8_t image_write(image_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size);
-
-/**
- * @brief Get image header
- * @param objPL_this .. pointer to image instance
- */
-void image_header_get(image_t *objPL_this);
+int8_t image_write_to_storage(image_t *objPL_this, storage_t *objPL_storage);
 
 /**
  * @brief Validate image

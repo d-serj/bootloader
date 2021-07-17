@@ -57,41 +57,9 @@ int main(void)
   gpio_setup();
   com_init();
 
-  image_t objL_image = { 0 };
-
   if (com_is_master_connected(1000))
   {
-    image_open(&objL_image, "firmware.bin");
-  }
-
-  // 1. Check flags
-  // 2. Load app or go to update
-  // 3. Get image header
-  // 4. Image validate header
-  // 5. Check CRC32 for the whole file
-  // 6. Download image from the beginning to flash it
-  // 7. Image flash
-  // 8. Check CRC32
-  // 6. Image start
-  //image_start(objS_uart4.u8P_buffer, *objS_uart4.u16P_rec_bytes);
-
-  storage_init();
-  image_open(&objL_image, "firmware.bin");
-  if (image_validate(&objL_image))
-  {
-    image_open(&objL_image, "firmware.bin");
-    // write image
-    uint8_t u8PL_buff[256] = { 0 };
-    while(1)
-    {
-      const uint32_t u32L_bytes_read = image_read(&objL_image, u8PL_buff, ARRAY_SIZE(u8PL_buff));
-      if (u32L_bytes_read != 0)
-      {
-        // TODO add offset for firmware writing
-        flash_program_data((uint32_t)&__app_start__, u8PL_buff, u32L_bytes_read);
-      }
-    }
-
+    image_write_to_storage()
   }
 
   comhdlc_deinit();

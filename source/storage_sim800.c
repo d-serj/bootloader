@@ -123,7 +123,7 @@ uint32_t storage_get_chunk(storage_sim800_t *objPL_this, uint8_t *u8PL_chunk_buf
   return u32L_idx;
 }
 
-int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32PL_file_size)
+int8_t storage_get_file_size(storage_sim800_t *objPL_this, const char *cPL_file_name, uint32_t* u32PL_file_size)
 {
   ASSERT(cPL_file_name != NULL);
 
@@ -133,20 +133,20 @@ int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32PL_file_siz
   ASSERT(strlen(cPL_file_name) < (ARRAY_SIZE(cPL_buff) - strlen(cPL_cmd) + 1));
 
   snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "%s%s\r\n+FSFLSIZE: ", cPL_cmd, cPL_file_name);
-  usart_send_string(&objS_usart2, cPL_buff);
+  usart_send_string(objPL_this->objP_uart, cPL_buff);
 
   delay(100);
 
-  if (storage_compare_echo(cPL_buff, strlen(cPL_buff)) == false)
+  if (storage_compare_echo(objPL_this, cPL_buff, strlen(cPL_buff)) == false)
   {
-    usart_flush(&objS_usart2);
+    usart_flush(objPL_this->objP_uart);
     return eStorageError;
   }
 
   uint32_t u32L_idx = 0;
   uint8_t u8L_byte  = 0;
   // Get file size
-  while (usart_get_byte(&objS_usart2, &u8L_byte, 100))
+  while (usart_get_byte(objPL_this->objP_uart, &u8L_byte, 100))
   {
     cPL_buff[u32L_idx] = (char)u8L_byte;
 
@@ -155,7 +155,7 @@ int8_t storage_get_file_size(const char *cPL_file_name, uint32_t* u32PL_file_siz
     if (u32L_idx >= ARRAY_SIZE(cPL_buff))
     {
       ASSERT(0);
-      usart_flush(&objS_usart2);
+      usart_flush(objPL_this->objP_uart);
       return eStorageError;
     }
   }

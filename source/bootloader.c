@@ -12,7 +12,34 @@
 #include <libopencm3/stm32/gpio.h>
 
 #include "memory_map.h"
+#include "image.h"
+#include "storage.h"
+#include "storage_sim800.h"
+#include "storage_internal.h"
 #include "bootloader.h"
+
+
+static image_t objL_image = { 0 };
+
+void bootloader_run(void)
+{
+  // 1. Check flags
+  // 2. Load app or go to update
+  // 3. Get image header
+  // 4. Image validate header
+  // 5. Check CRC32 for the whole file
+  // 6. Download image from the beginning to flash it
+  // 7. Image flash
+  // 8. Check CRC32
+  // 6. Image start
+
+  image_open(&objL_image, storage_sim800_init_static(), "firmware.bin");
+
+  if (image_validate(&objL_image))
+  {
+    image_flash(&objL_image, storage_internal_init_static());
+  }
+}
 
 static inline void __set_MSP(volatile uint32_t topOfMainStack)
 {

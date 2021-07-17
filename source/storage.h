@@ -30,4 +30,12 @@ struct storage
   uint8_t  u8_mode;                           ///< File mode from eStorageMode
 };
 
+int8_t storage_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L_mode);
+
+int8_t storage_close(storage_t *objPL_this);
+
+int8_t storage_write(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
+
+int8_t storage_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read);
+
 #endif // STORAGE_H_

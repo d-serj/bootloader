@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 
+#include "storage.h"
+
 enum StorageError
 {
   eStorageOk    = 0,
@@ -17,20 +19,6 @@ enum StorageError
 /**
  * @brief Initialize storage
  */
-void storage_init(void);
-
-/**
- * @brief Deinitialize storage
- */
-void storage_deinit(void);
-
-/**
- * @brief Get file size
- * 
- * @param cPL_file_name .. filename to give the size of
- * @param u32L_file_size .. pointer to the variable where file size will be written
- * @return error code from StorageError enumeration
- */
-int8_t storage_get_file_size(const char *cPL_file_name, uint32_t *u32L_file_size);
+storage_t *storage_sim800_init_static(void);
 
 #endif // STORAGE_SIM800_H_
