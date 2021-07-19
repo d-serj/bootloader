@@ -63,6 +63,26 @@ int main(void)
       ;
   }
 
+  // 1. Check flags
+  // 2. Load app or go to update
+  // 3. Get image header
+  // 4. Image validate header
+  // 5. Check CRC32 for the whole file
+  // 6. Download image from the beginning to flash it
+  // 7. Image flash
+  // 8. Check CRC32
+  // 6. Image start
+
+  image_t objL_image = { 0 };
+  storage_t *objPL_sim800_stor = storage_sim800_init_static();
+
+  image_open(&objL_image, objPL_sim800_stor, "firmware.bin");
+
+  if (image_validate(&objL_image))
+  {
+    image_copy(&objL_image, objPL_sim800_stor, storage_internal_init_static());
+  }
+
   comhdlc_deinit();
   systick_deinit();
   rcc_periph_clock_disable(RCC_GPIOC);
