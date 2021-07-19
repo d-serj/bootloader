@@ -93,28 +93,29 @@ static TF_Result com_listener_handshake(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
   static bool bSL_started         = false;
-  static storage_t objSL_storage  = { 0 };
   static uint32_t u32SL_size_file = 0;
+  storage_t *objPL_storage        = storage_sim800_init_static();
   UNUSED(objPL_tf);
 
   if (objPL_msg->type == eCmdWriteFile)
   {
     if (bSL_started == false)
     {
-      storage_open(&objSL_storage, "firmware.bin", eStorageModeCreate);
+      storage_open(objPL_storage, "firmware.bin", eStorageModeCreate);
+      u32SL_size_file = *(uint32_t*)objPL_msg->data;
       bSL_started = true;
     }
 
     uint32_t u32L_bytes_written = 0;
 
-    const int8_t s8L_ret = storage_write(&objSL_storage, objPL_msg->data, objPL_msg->len, &u32L_bytes_written);
+    const int8_t s8L_ret = storage_write(objPL_storage, objPL_msg->data, objPL_msg->len, &u32L_bytes_written);
 
     ASSERT(s8L_ret == 0);
     ASSERT(u32L_bytes_written == objPL_msg->len);
 
     if (u32SL_size_file == u32L_bytes_written)
     {
-      storage_close(&objSL_storage);
+      storage_close(objPL_storage);
       bS_finished = true;
       return TF_CLOSE;
     }
