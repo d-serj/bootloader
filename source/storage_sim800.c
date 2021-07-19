@@ -137,13 +137,15 @@ int8_t sim800_write(storage_t *objPL_this, const uint8_t *u8PL_buff, uint32_t u3
 int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read)
 {
   storage_sim800_t *objPL_store = (storage_sim800_t*)objPL_this;
+  // 0 - Read data at the beginning of the file
+  // 1 - Read data at the <offset> of the file
   const uint8_t u8L_mode = (objPL_this->u32_offset == 0) ? 0 : 1;
   char cPL_buff[128]     = { 0 };
   
   snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
     objPL_store->cP_file_name, u8L_mode, u32L_bytes_to_read, objPL_this->u32_offset);
   usart_send_string(objPL_store->objP_uart, cPL_buff);
-  delay(20);
+  delay(1);
   usart_flush(objPL_store->objP_uart);
 
 /*
@@ -163,6 +165,8 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
     u8PL_buff[u32L_idx] = u8L_data;
     ++u32L_idx;
   }
+
+  objPL_this->u32_offset += u32L_idx;
 
   return 0;
 }
