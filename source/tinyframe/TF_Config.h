@@ -59,7 +59,7 @@ typedef uint8_t TF_COUNT;
 // --- Listener counts - determine sizes of the static slot tables ---
 
 // Frame ID listeners (wait for response / multi-part message)
-#define TF_MAX_ID_LST   1
+#define TF_MAX_ID_LST   10
 // Frame Type listeners (wait for frame with a specific first payload byte)
 #define TF_MAX_TYPE_LST 10
 // Generic listeners (fallback if no other listener catches it)
@@ -67,7 +67,7 @@ typedef uint8_t TF_COUNT;
 
 // Timeout for receiving & parsing a frame
 // ticks = number of calls to TF_Tick()
-#define TF_PARSER_TIMEOUT_TICKS 100
+#define TF_PARSER_TIMEOUT_TICKS 65535
 
 // Whether to use mutex - requires you to implement TF_ClaimTx() and TF_ReleaseTx()
 #define TF_USE_MUTEX  0
