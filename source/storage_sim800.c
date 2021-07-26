@@ -43,9 +43,13 @@ int8_t sim800_close(storage_t *objPL_this);
 int8_t sim800_write(storage_t *objPL_this, const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
 int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read);
 
-storage_t *storage_sim800_init_static(void)
+storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart, uart_num_t e_uart_num)
 {
   storage_t *objPL_storage = (storage_t*)&objS_stor_sim800;
+
+  objS_stor_sim800.objP_uart  = objPL_uart;
+  objS_stor_sim800.e_uart_num = e_uart_num;
+
   objPL_storage->u32_offset              = 0;
   objPL_storage->obj_virtual_table.open  = sim800_open;
   objPL_storage->obj_virtual_table.close = sim800_close;
