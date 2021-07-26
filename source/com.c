@@ -49,6 +49,15 @@ void com_deinit(void)
   usart_deinit(&objS_uart4);
 }
 
+void com_run(void)
+{
+  uint8_t u8L_byte = 0;
+  while (usart_get_byte(&objS_uart4, &u8L_byte, 1))
+  {
+    minihdlc_char_receiver(u8L_byte);
+  }
+}
+
 bool com_is_master_connected(uint16_t u16L_timeout)
 {
   uint16_t u16L_time = 0;
@@ -94,7 +103,8 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
   static bool bSL_started         = false;
   static uint32_t u32SL_size_file = 0;
-  storage_t *objPL_storage        = storage_sim800_init_static();
+  storage_t *objPL_storage        = storage_sim800_init_static(&objS_uart4, eUART4);
+  TF_Result eL_res                = TF_NEXT;
   UNUSED(objPL_tf);
 
   if (objPL_msg->type == eCmdWriteFile)
@@ -105,25 +115,31 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
       u32SL_size_file = *(uint32_t*)objPL_msg->data;
       bSL_started = true;
     }
-
-    uint32_t u32L_bytes_written = 0;
-
-    const int8_t s8L_ret = storage_write(objPL_storage, objPL_msg->data, objPL_msg->len, &u32L_bytes_written);
-
-    ASSERT(s8L_ret == 0);
-    ASSERT(u32L_bytes_written == objPL_msg->len);
-
-    if (u32SL_size_file == u32L_bytes_written)
+    else
     {
-      storage_close(objPL_storage);
-      bS_finished = true;
-      return TF_CLOSE;
+      uint32_t u32L_bytes_written = 0;
+
+      const int8_t s8L_ret = storage_write(objPL_storage, objPL_msg->data, u32SL_size_file, &u32L_bytes_written);
+
+      ASSERT(s8L_ret == 0);
+      ASSERT(u32L_bytes_written == u32SL_size_file);
+
+      if (u32SL_size_file != u32L_bytes_written)
+      {
+        eL_res = TF_STAY;
+      }
+      else
+      {
+        storage_close(objPL_storage);
+        bS_finished = true;
+        eL_res      = TF_CLOSE;
+      }
     }
 
-    return TF_STAY;
+    TF_Respond(objPL_tf, objPL_msg);
   }
 
-  return TF_NEXT;
+  return eL_res;
 }
 
 bool com_file_write_is_finished(void)

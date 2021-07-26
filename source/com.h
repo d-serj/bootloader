@@ -10,6 +10,8 @@ void com_init(void);
 
 void com_deinit(void);
 
+void com_run(void);
+
 bool com_is_master_connected(uint16_t u16L_timeout);
 
 void com_systick_clbk(void *PL_user_data);

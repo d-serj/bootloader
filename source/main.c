@@ -16,13 +16,15 @@
 #include "delay.h"
 #include "pins.h"
 #include "modem/sim800/sim800.h"
-#include "comhdlc/comhdlc.h"
 #include "utilities/toolbox.h"
 #include "drivers/flash.h"
 #include "storage_sim800.h"
 #include "memory_map.h"
 #include "image.h"
 #include "com.h"
+
+#include "storage.h"
+#include "storage_internal.h"
 
 static void clock_setup(void)
 {
@@ -57,10 +59,14 @@ int main(void)
   gpio_setup();
   com_init();
 
-  if (com_is_master_connected(1000))
+  for (;;)
   {
-    while (com_file_write_is_finished() == false)
-      ;
+    com_run();
+
+    if (com_is_master_connected(1000))
+    {
+      com_file_write_is_finished();
+    }
   }
 
   // 1. Check flags
@@ -73,6 +79,7 @@ int main(void)
   // 8. Check CRC32
   // 6. Image start
 
+/*
   image_t objL_image = { 0 };
   storage_t *objPL_sim800_stor = storage_sim800_init_static();
 
@@ -82,8 +89,9 @@ int main(void)
   {
     image_copy(&objL_image, objPL_sim800_stor, storage_internal_init_static());
   }
+  */
 
-  comhdlc_deinit();
+  com_deinit();
   systick_deinit();
   rcc_periph_clock_disable(RCC_GPIOC);
   rcc_periph_clock_disable(RCC_GPIOB);

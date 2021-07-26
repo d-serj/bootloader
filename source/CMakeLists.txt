@@ -22,7 +22,6 @@ target_sources(
   #drivers/bkp.c
   modem/sim800/sim800.c
   comhdlc/minihdlc.c
-  comhdlc/comhdlc.c
   tinyframe/TinyFrame.c
 )
 
