@@ -27,6 +27,9 @@ void systick_init(systick_clbk_t objPL_callback, void *PL_user_data)
   systick_interrupt_enable();
   // Enable the system tick counter
   systick_counter_enable();
+
+  objPS_callback = objPL_callback;
+  PS_user_data   = PL_user_data;
 }
 
 void systick_deinit(void)
