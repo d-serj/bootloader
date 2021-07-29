@@ -29,14 +29,6 @@ typedef struct
 
 static storage_sim800_t objS_stor_sim800;
 
-/**
- * @brief Get the file chunk from the storage
- * @param u8PL_chunk_buf .. buffer to be filled with data
- * @param u32L_chunk_size .. chunk size to read
- * @return uint32_t number of read bytes
- */
-
-//static uint32_t storage_get_chunk(storage_sim800_t *objPL_this, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size);
 
 int8_t sim800_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L_mode);
 int8_t sim800_close(storage_t *objPL_this);
@@ -176,35 +168,6 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
 }
 
 #if 0
-uint32_t storage_get_chunk(storage_sim800_t *objPL_this, uint8_t *u8PL_chunk_buf, uint32_t u32L_chunk_size)
-{
-  ASSERT(u8PL_chunk_buf != NULL);
-
-  const uint8_t u8L_mode = (objPL_this->obj_stor.u32_offset == 0) ? 0 : 1;
-  char cPL_buff[128]     = { 0 };
-  
-  snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
-    objPL_this->cP_file_name, u8L_mode, u32L_chunk_size, objPL_this->obj_stor.u32_offset);
-  usart_send_string(objPL_this->objP_uart, cPL_buff);
-
-  if (storage_compare_echo(objPL_this, cPL_buff, strlen(cPL_buff)) == false)
-  {
-    usart_flush(objPL_this->objP_uart);
-    return 0;
-  }
-
-  uint32_t u32L_idx = 0;
-  uint8_t u8L_data  = 0;
-
-  while (u32L_idx <= u32L_chunk_size)
-  {
-    usart_get_byte(objPL_this->objP_uart, &u8L_data, 10);
-    u8PL_chunk_buf[u32L_idx] = u8L_data;
-    ++u32L_idx;
-  }
-
-  return u32L_idx;
-}
 
 int8_t storage_get_file_size(storage_sim800_t *objPL_this, const char *cPL_file_name, uint32_t* u32PL_file_size)
 {
