@@ -65,7 +65,10 @@ int main(void)
 
     if (com_is_master_connected(1000))
     {
-      com_file_write_is_finished();
+      if (com_file_write_is_finished())
+      {
+        break;
+      }
     }
   }
 
