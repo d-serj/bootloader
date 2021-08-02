@@ -25,6 +25,7 @@ enum eComHdlcCommands
 
 static TinyFrame tf                = { 0 };
 static usart_instance_t objS_uart4;
+static usart_instance_t objS_uart2;
 static bool bS_is_master_connected = false;
 static bool bS_finished            = false;
 
@@ -103,7 +104,7 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
   static bool bSL_started         = false;
   static uint32_t u32SL_size_file = 0;
-  storage_t *objPL_storage        = storage_sim800_init_static(&objS_uart4, eUART4);
+  storage_t *objPL_storage        = storage_sim800_init_static(&objS_uart2, eUART2);
   TF_Result eL_res                = TF_NEXT;
   UNUSED(objPL_tf);
 
