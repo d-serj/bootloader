@@ -131,6 +131,10 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
       }
       else
       {
+        const int8_t s8L_ret = storage_read(objPL_storage, objPL_msg->data, u32SL_size_file, &u32L_bytes_written);
+
+        ASSERT(s8L_ret == 0);
+
         storage_close(objPL_storage);
         bS_finished = true;
         eL_res      = TF_CLOSE;
