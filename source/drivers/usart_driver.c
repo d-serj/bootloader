@@ -133,10 +133,8 @@ void usart_flush(usart_instance_t *objPL_uart)
 
   ring_buffer_t *objPL_ring_buff = &objPL_uart->obj_buffer;
 
-  while (ring_buffer_is_empty(objPL_ring_buff) == 0)
-  {
-    ring_buffer_dequeue(objPL_ring_buff, NULL);
-  }
+  while (ring_buffer_dequeue(objPL_ring_buff, NULL))
+    ;
 }
 
 uint8_t usart_get_byte(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout)
