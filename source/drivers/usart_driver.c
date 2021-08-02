@@ -139,7 +139,7 @@ void usart_flush(usart_instance_t *objPL_uart)
   }
 }
 
-uint8_t usart_get_byte(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout)
+uint8_t usart_get_byte_with_timeout(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout)
 {
   ASSERT(objPL_uart != NULL);
 

@@ -80,21 +80,21 @@ int main(void)
 
   for(;;)
   {
-    if (usart_get_byte(&objS_usart4, &u8L_byte, 10))
+    if (usart_get_byte_with_timeout(&objS_usart4, &u8L_byte, 10))
     {
       usart_send_raw(&objS_usart2, &u8L_byte, 1);
 
-      while (usart_get_byte(&objS_usart4, &u8L_byte, 10))
+      while (usart_get_byte_with_timeout(&objS_usart4, &u8L_byte, 10))
       {
         usart_send_raw(&objS_usart2, &u8L_byte, 1);
       }
     }
 
-    if (usart_get_byte(&objS_usart2, &u8L_byte, 10))
+    if (usart_get_byte_with_timeout(&objS_usart2, &u8L_byte, 10))
     {
       usart_send_raw(&objS_usart4, &u8L_byte, 1);
 
-      while (usart_get_byte(&objS_usart2, &u8L_byte, 10))
+      while (usart_get_byte_with_timeout(&objS_usart2, &u8L_byte, 10))
       {
         usart_send_raw(&objS_usart4, &u8L_byte, 1);
       }
