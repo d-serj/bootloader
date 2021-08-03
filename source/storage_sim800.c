@@ -141,8 +141,7 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
   snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
     objPL_store->cP_file_name, u8L_mode, u32L_bytes_to_read, objPL_this->u32_offset);
   usart_send_string(objPL_store->objP_uart, cPL_buff);
-  delay(1);
-  usart_flush(objPL_store->objP_uart);
+  delay(100);
 
 /*
   if (storage_compare_echo(objPL_this, cPL_buff, strlen(cPL_buff)) == false)
@@ -154,13 +153,25 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
 
   uint32_t u32L_idx = 0;
   uint8_t u8L_data  = 0;
+  const uint16_t u16L_req_len = strlen(cPL_buff);
 
-  while (u32L_idx <= u32L_bytes_to_read)
+  // Clear echo
+  while (u32L_idx <= u16L_req_len)
+  {
+    usart_get_byte(objPL_store->objP_uart, NULL, 10);
+    ++u32L_idx;
+  }
+
+  u32L_idx = 0;
+
+  while (u32L_idx < u32L_bytes_to_read)
   {
     usart_get_byte(objPL_store->objP_uart, &u8L_data, 10);
     u8PL_buff[u32L_idx] = u8L_data;
     ++u32L_idx;
   }
+
+  usart_flush(objPL_store->objP_uart);
 
   objPL_this->u32_offset += u32L_idx;
 
