@@ -92,10 +92,6 @@ int8_t sim800_close(storage_t *objPL_this)
   sim800_power_off();
   objPL_this->u8_mode    = 0;
   objPL_this->u32_offset = 0;
-  
-  usart_send_string(objPL_sim800->objP_uart, "AT+FSLS=C:\\User\\\r\n");
-  delay(100);
-  usart_flush(objPL_sim800->objP_uart);
 
   return 0;
 }
