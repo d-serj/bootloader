@@ -28,8 +28,6 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
 
   objPL_uart->e_instance = eL_uart_num;
 
-  rcc_periph_clock_enable(RCC_AFIO);
-
   if (eL_uart_num == eUART2)
   {
     rcc_periph_clock_enable(RCC_USART2);
@@ -64,7 +62,7 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
   }
 
   /* Setup UART parameters. */
-  usart_set_baudrate(eL_uart_num, 9600);
+  usart_set_baudrate(eL_uart_num, 19200);
   usart_set_databits(eL_uart_num, 8);
   usart_set_stopbits(eL_uart_num, USART_STOPBITS_1);
   usart_set_mode(eL_uart_num, USART_MODE_TX_RX);
@@ -90,15 +88,20 @@ void usart_deinit(usart_instance_t *objPL_uart)
   if (eL_uart_num == eUART2)
   {
     nvic_disable_irq(NVIC_USART2_IRQ);
+	  rcc_periph_reset_pulse(RST_USART2);
     rcc_periph_clock_disable(RCC_USART2);
   }
   else if (eL_uart_num == eUART4)
   {
     nvic_disable_irq(NVIC_UART4_IRQ);
+    rcc_periph_reset_pulse(RST_UART4);
     rcc_periph_clock_disable(RCC_UART4);
   }
+  else
+  {
+    ASSERT(0);
+  }
 
-  rcc_periph_clock_disable(RCC_AFIO);
   usart_disable(eL_uart_num);
 }
 
@@ -131,15 +134,12 @@ void usart_flush(usart_instance_t *objPL_uart)
   ASSERT(objPL_uart != NULL);
   ASSERT((objPL_uart->e_instance == eUART2) || (objPL_uart->e_instance == eUART4));
 
-  ring_buffer_t *objPL_ring_buff = &objPL_uart->obj_buffer;
+  ring_buffer_t * const objPL_ring_buff = &objPL_uart->obj_buffer;
 
-  while (ring_buffer_is_empty(objPL_ring_buff) == 0)
-  {
-    ring_buffer_dequeue(objPL_ring_buff, NULL);
-  }
+  ring_buffer_flush(objPL_ring_buff);
 }
 
-uint8_t usart_get_byte_with_timeout(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout)
+uint8_t usart_get_byte(usart_instance_t *objPL_uart, uint8_t *u8PL_byte, uint8_t u8L_timeout)
 {
   ASSERT(objPL_uart != NULL);
 
