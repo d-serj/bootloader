@@ -8,7 +8,7 @@
 
 #include "storage.h"
 
-void com_init(storage_t *objPL_storage);
+void com_init(storage_t *objPL_storage, usart_instance_t *objPL_uart);
 
 void com_deinit(void);
 
