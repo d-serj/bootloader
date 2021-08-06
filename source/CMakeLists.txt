@@ -41,8 +41,20 @@ add_custom_command(
 add_custom_command(
   TARGET ${TARGET_NAME}
   POST_BUILD
-  COMMAND ${CMAKE_OBJCOPY} --pad-to=0x4000 --gap-fill=0xFF -v -O binary
-  "${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}" "${BINARY_NAME}"
+  COMMAND ${CMAKE_OBJCOPY} -v -O binary
+    "${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}" "${BINARY_NAME}"
   COMMENT "\nGenerating binary file"
   WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )
+
+# Post build step to fill the image header
+if(OPTION_BOOTLOADABLE)
+  add_custom_command(
+    TARGET ${TARGET_NAME} 
+    POST_BUILD
+    COMMAND ${PYTHON_EXECUTABLE} patch_image_header.py
+      ${EXECUTABLE_OUTPUT_PATH}/${BINARY_NAME}
+    COMMENT "\nExecuting post-build patch_image_header.py python script"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
+  )
+endif()

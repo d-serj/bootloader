@@ -50,10 +50,27 @@
 */
 
 /* Specify the memory areas */
+/* Bootloadable */
 MEMORY
 {
   ram (xrw)     : ORIGIN = 0x20000000, LENGTH = 20K
-  rom (rx)      : ORIGIN = 0x8000000, LENGTH = 64K
+  rom (rx)      : ORIGIN = 0x8004000, LENGTH = 16K
+}
+
+/* Enforce emmition of the vector table. */
+EXTERN (vector_table)
+
+/* Define the entry point of the output file. */
+ENTRY(reset_handler)
+
+SECTIONS
+{
+  .image_hdr : {
+    KEEP (*(.image_hdr))
+    /* Vector table must be 256-bytes aligned */
+    . = ALIGN(256);
+  } >rom
+
 }
 
 INCLUDE cortex-m-generic.ld

@@ -39,12 +39,18 @@ set_directory_properties(
 
 # Cmake GUI settings
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)   # Add selectable options to choose build type from CMake GUI
+option(OPTION_BOOTLOADABLE ON "Make the application to be bootloadable from the address 0x08004000")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 
 # Linker script and .map file
-set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F1_FLASH.ld)
+if(OPTION_BOOTLOADABLE)
+  set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F1_FLASH_boot.ld)
+else()
+  set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F1_FLASH.ld)
+endif()
+
 add_link_options(
   -L ${CMAKE_SOURCE_DIR}/libopencm3/lib
   -Wl,-Map,${EXECUTABLE_OUTPUT_PATH}/${TARGET_NAME}.map
@@ -67,7 +73,7 @@ if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libopencm3)
 endif()
 
 execute_process(
-  COMMAND           make TARGETS=stm32/f1
+  COMMAND           make TARGETS=stm32/f1 FP_FLAGS="-mfloat-abi=soft"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libopencm3
 )
 
