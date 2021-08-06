@@ -18,8 +18,7 @@ void systick_init(systick_clbk_t objPL_callback, void *PL_user_data)
 {
   // Set the systick clock source to our main clock
   systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
-  // Clear the Current Value Register so that we start at 0
-  STK_CVR = 0;
+  systick_clear();
   // In order to trigger an interrupt every millisecond, we can set the reload
   // value to be the speed of the processor / 1000 - 1
   systick_set_reload(rcc_ahb_frequency / 1000 - 1);
@@ -34,6 +33,7 @@ void systick_init(systick_clbk_t objPL_callback, void *PL_user_data)
 
 void systick_deinit(void)
 {
+  systick_clear();
   systick_interrupt_disable();
   systick_counter_disable();
 }
