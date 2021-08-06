@@ -21,7 +21,7 @@ static usart_instance_t objS_usart4;
 
 static void clock_setup(void)
 {
-  rcc_clock_setup_in_hsi_out_24mhz();
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_48MHZ]);
 
     /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
