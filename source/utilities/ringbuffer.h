@@ -14,7 +14,7 @@
  * can be contained in the buffer.
  * The buffer size must be a power of two.
 */
-#define RING_BUFFER_SIZE 512
+#define RING_BUFFER_SIZE 2048
 
 #if (RING_BUFFER_SIZE & (RING_BUFFER_SIZE - 1)) != 0
 #error "RING_BUFFER_SIZE must be a power of two"
@@ -25,7 +25,7 @@
  * and the indicies of the buffer.
  * Must be able to fit \c RING_BUFFER_SIZE .
  */
-typedef uint8_t ring_buffer_size_t;
+typedef uint16_t ring_buffer_size_t;
 
 /**
  * Used as a modulo operator
@@ -112,6 +112,11 @@ uint8_t ring_buffer_peek(ring_buffer_t *buffer, uint8_t *data, ring_buffer_size_
 inline uint8_t ring_buffer_is_empty(ring_buffer_t *buffer)
 {
   return (buffer->head_index == buffer->tail_index);
+}
+
+inline void ring_buffer_flush(ring_buffer_t *buffer)
+{
+  buffer->head_index = buffer->tail_index;
 }
 
 /**
