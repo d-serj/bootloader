@@ -21,7 +21,7 @@ static usart_instance_t objS_usart4;
 
 static void clock_setup(void)
 {
-  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_48MHZ]);
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 
     /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
@@ -31,6 +31,8 @@ static void clock_setup(void)
 
   /* Enable GPIOA clock. */
   rcc_periph_clock_enable(RCC_GPIOA);
+
+  rcc_periph_clock_enable(RCC_AFIO);
 }
 
 static void gpio_setup(void)
@@ -80,21 +82,21 @@ int main(void)
 
   for(;;)
   {
-    if (usart_get_byte_with_timeout(&objS_usart4, &u8L_byte, 10))
+    if (usart_get_byte(&objS_usart4, &u8L_byte, 10))
     {
       usart_send_raw(&objS_usart2, &u8L_byte, 1);
 
-      while (usart_get_byte_with_timeout(&objS_usart4, &u8L_byte, 10))
+      while (usart_get_byte(&objS_usart4, &u8L_byte, 10))
       {
         usart_send_raw(&objS_usart2, &u8L_byte, 1);
       }
     }
 
-    if (usart_get_byte_with_timeout(&objS_usart2, &u8L_byte, 10))
+    if (usart_get_byte(&objS_usart2, &u8L_byte, 10))
     {
       usart_send_raw(&objS_usart4, &u8L_byte, 1);
 
-      while (usart_get_byte_with_timeout(&objS_usart2, &u8L_byte, 10))
+      while (usart_get_byte(&objS_usart2, &u8L_byte, 10))
       {
         usart_send_raw(&objS_usart4, &u8L_byte, 1);
       }
