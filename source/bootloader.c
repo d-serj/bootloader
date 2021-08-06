@@ -12,17 +12,12 @@
 #include <libopencm3/stm32/gpio.h>
 
 #include "memory_map.h"
-#include "image.h"
-#include "storage.h"
-#include "storage_sim800.h"
-#include "storage_internal.h"
 #include "bootloader.h"
 
-
-static inline void __set_MSP(volatile uint32_t topOfMainStack)
+static inline __attribute__((always_inline)) void __set_MSP(volatile uint32_t topOfMainStack)
 {
   //  Set the stack pointer.
-  asm("msr msp, %0" : : "r" (topOfMainStack));
+  asm volatile("msr msp, %0" : : "r" (topOfMainStack) : );
 }
 
 void image_start(uint32_t u32L_vector_addr)
@@ -34,13 +29,14 @@ void image_start(uint32_t u32L_vector_addr)
   __disable_irq();
   // Ensure all memory operations are finished before modifing VTOR
   asm("dmb");
-  SCB_VTOR = (uint32_t)objPL_vector & 0xFFFFFFF8;
+  SCB_VTOR = (uint32_t)objPL_vector;
   asm("dsb");
   __enable_irq();
 
   __set_MSP((volatile uint32_t)objPL_vector->initial_sp_value);
   // Call the reset handler
   // (the construct below is 'pointer to a pointer to a function that takes no arguments and returns void')
-  (*(void (**)())(0x8004200 + 4))();
+  void (*reset_handler)(void) = (void *)*(volatile uint32_t *)(u32L_vector_addr + 4);
+  reset_handler();
   __builtin_unreachable();
 }
