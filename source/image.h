@@ -19,12 +19,13 @@ typedef struct
   storage_t *objP_storage; 
   const char *cP_file_name;     ///< File name
   uint32_t   u32_file_size;     ///< File size on the storage
-  uint32_t   u32_firmware_size; ///< The size of firmware part
 } image_t;
 
 int8_t image_open(image_t *objPL_this, storage_t *objPL_storage, const char *cPL_filename);
 
-int8_t image_copy(image_t *objPL_this, storage_t *objPL_source, storage_t *objPL_dest);
+int8_t image_close(image_t *objPL_this);
+
+int8_t image_copy(image_t *objPL_this, storage_t *objPL_dest);
 
 /**
  * @brief Validate image
