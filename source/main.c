@@ -26,9 +26,12 @@
 #include "storage.h"
 #include "storage_internal.h"
 
+static usart_instance_t objS_uart2;
+static usart_instance_t objS_uart4;
+
 static void clock_setup(void)
 {
-  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_24MHZ]);
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_64MHZ]);
 
   /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
@@ -38,6 +41,29 @@ static void clock_setup(void)
 
   /* Enable GPIOA clock. */
   rcc_periph_clock_enable(RCC_GPIOA);
+
+  rcc_periph_clock_enable(RCC_AFIO);
+}
+
+static void clock_deinit(void)
+{
+  // rcc_periph_reset_pulse(RST_GPIOC);
+  // rcc_periph_reset_pulse(RST_GPIOB);
+  // rcc_periph_reset_pulse(RST_GPIOA);
+  // rcc_periph_clock_disable(RCC_GPIOC);
+  // rcc_periph_clock_disable(RCC_GPIOB);
+  // rcc_periph_clock_disable(RCC_GPIOA);
+  // rcc_periph_reset_pulse(RST_AFIO);
+  // rcc_periph_clock_disable(RCC_AFIO);
+  // rcc_peripheral_disable_clock(&RCC_APB1ENR, RCC_APB1ENR_UART4EN | RCC_APB1ENR_USART2EN);
+  // rcc_peripheral_disable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN);
+  // rcc_osc_off(RCC_HSI);
+  // rcc_osc_off(RCC_PLL);
+
+  RCC_AHBENR &= ~(RCC_AHBENR_CRCEN);
+	RCC_AHBENR &= ~(RCC_AHBENR_CRCEN);
+	RCC_APB2RSTR = 0;
+	RCC_APB1RSTR = 0;
 }
 
 static void gpio_setup(void)
@@ -57,18 +83,31 @@ int main(void)
   clock_setup();
   systick_init(com_systick_clbk, NULL);
   gpio_setup();
-  com_init();
 
-  for (;;)
+  usart_setup(&objS_uart2, eUART2);
+  usart_setup(&objS_uart4, eUART4);
+
+  storage_t *objPL_storage_sim800 = storage_sim800_init_static(&objS_uart2);
+  com_init(objPL_storage_sim800, &objS_uart4);
+
+  if (com_is_master_connected(1000))
   {
-    com_run();
+    while (com_file_write_is_finished() == false)
+      ;
+  }
 
-    if (com_is_master_connected(1000))
+  bool image_could_start = false;
+  image_t objL_image = { 0 };
+  if (image_open(&objL_image, objPL_storage_sim800, "firmware.bin") == 0)
+  {
+    if (image_validate(&objL_image))
     {
-      if (com_file_write_is_finished())
-      {
-        break;
-      }
+      const int8_t s8L_ret = image_copy(&objL_image, storage_internal_init_static(0x08004000));
+      image_could_start = (s8L_ret == 0);
+    }
+    else
+    {
+      image_close(&objL_image);
     }
   }
 
@@ -82,26 +121,21 @@ int main(void)
   // 8. Check CRC32
   // 6. Image start
 
-/*
-  image_t objL_image = { 0 };
-  storage_t *objPL_sim800_stor = storage_sim800_init_static();
-
-  image_open(&objL_image, objPL_sim800_stor, "firmware.bin");
-
-  if (image_validate(&objL_image))
-  {
-    image_copy(&objL_image, objPL_sim800_stor, storage_internal_init_static());
-  }
-  */
-
   com_deinit();
+  storage_sim800_deinit();
+
   systick_deinit();
-  rcc_periph_clock_disable(RCC_GPIOC);
-  rcc_periph_clock_disable(RCC_GPIOB);
-  rcc_periph_clock_disable(RCC_GPIOA);
-  rcc_osc_off(RCC_HSI);
+  usart_deinit(&objS_uart2);
+  usart_deinit(&objS_uart4);
+  clock_deinit();
   
-  for(;;);
+  if (image_could_start)
+  {
+    image_start(objL_image.obj_img_hdr.u32_vector_addr);
+  }
+
+  for(;;)
+    ;
 
   return 0;
 }
