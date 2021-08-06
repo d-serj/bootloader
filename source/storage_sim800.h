@@ -22,9 +22,10 @@ enum StorageError
  * @brief Get SIM800 storage instance
  * 
  * @param objPL_uart .. pointer to UART instance to communicate with SIM800
- * @param e_uart_num .. UART number
  * @return storage_t* pointer to storage
  */
-storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart, uart_num_t e_uart_num);
+storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart);
+
+void storage_sim800_deinit(void);
 
 #endif // STORAGE_SIM800_H_

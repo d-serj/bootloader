@@ -24,7 +24,6 @@ typedef struct
   storage_t obj_stor;
   usart_instance_t *objP_uart;
   const char *cP_file_name;
-  uart_num_t e_uart_num;
 } storage_sim800_t;
 
 static storage_sim800_t objS_stor_sim800;
@@ -35,12 +34,11 @@ int8_t sim800_close(storage_t *objPL_this);
 int8_t sim800_write(storage_t *objPL_this, const uint8_t *u8PL_buff, uint32_t u32L_buff_size, uint32_t *u32PL_bytes_written);
 int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read);
 
-storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart, uart_num_t e_uart_num)
+storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart)
 {
   storage_t *objPL_storage = (storage_t*)&objS_stor_sim800;
 
   objS_stor_sim800.objP_uart  = objPL_uart;
-  objS_stor_sim800.e_uart_num = e_uart_num;
 
   objPL_storage->u32_offset              = 0;
   objPL_storage->obj_virtual_table.open  = sim800_open;
@@ -48,7 +46,17 @@ storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart, uart_num_t e
   objPL_storage->obj_virtual_table.read  = sim800_read;
   objPL_storage->obj_virtual_table.write = sim800_write;
 
+  sim800_power_on();
+  usart_send_string(objS_stor_sim800.objP_uart, "ATE1\r\n");
+  delay(1000);
+  usart_flush(objS_stor_sim800.objP_uart);
+
   return objPL_storage;
+}
+
+void storage_sim800_deinit(void)
+{
+  sim800_power_off();
 }
 
 #ifndef UTEST
@@ -60,26 +68,26 @@ bool storage_compare_echo(const char *cPL_cmd, uint32_t u32L_cmd_len);
 int8_t sim800_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L_mode)
 {
   storage_sim800_t *objPL_sim800 = (storage_sim800_t*)objPL_this;
-  usart_setup(objPL_sim800->objP_uart, objPL_sim800->e_uart_num);
-  sim800_power_on();
-  usart_send_string(objPL_sim800->objP_uart, "ATE1\r\n");
-  delay(1000);
-  usart_flush(objPL_sim800->objP_uart);
 
   objPL_sim800->cP_file_name = cPL_file_name;
   objPL_this->u8_mode        = u8L_mode;
   objPL_this->u32_offset     = 0;
 
-  char cPL_str[64] = { 0 };
+  if ((u8L_mode == eStorageModeRead) || (u8L_mode == eStorageModeWrite))
+  {
+    return 0;
+  }
+
+  char cPL_str[128] = { 0 };
 
   snprintf(cPL_str, sizeof(cPL_str), "AT+FSDEL=%s\r\n", objPL_sim800->cP_file_name);
   usart_send_string(objPL_sim800->objP_uart, cPL_str);
-  delay(100);
+  delay(10);
   usart_flush(objPL_sim800->objP_uart);
 
   snprintf(cPL_str, sizeof(cPL_str), "AT+FSCREATE=%s\r\n", objPL_sim800->cP_file_name);
   usart_send_string(objPL_sim800->objP_uart, cPL_str);
-  delay(100);
+  delay(10);
   usart_flush(objPL_sim800->objP_uart);
 
   return 0;
@@ -87,9 +95,6 @@ int8_t sim800_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L
 
 int8_t sim800_close(storage_t *objPL_this)
 {
-  storage_sim800_t *objPL_sim800 = (storage_sim800_t*)objPL_this;
-  usart_deinit(objPL_sim800->objP_uart);
-  sim800_power_off();
   objPL_this->u8_mode    = 0;
   objPL_this->u32_offset = 0;
 
@@ -132,12 +137,14 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
   // 0 - Read data at the beginning of the file
   // 1 - Read data at the <offset> of the file
   const uint8_t u8L_mode = (objPL_this->u32_offset == 0) ? 0 : 1;
-  char cPL_buff[128]     = { 0 };
+  char cPL_buff[256]     = { 0 };
+
+  usart_flush(objPL_store->objP_uart);
   
   snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
     objPL_store->cP_file_name, u8L_mode, u32L_bytes_to_read, objPL_this->u32_offset);
   usart_send_string(objPL_store->objP_uart, cPL_buff);
-  delay(100);
+  delay(5);
 
 /*
   if (storage_compare_echo(objPL_this, cPL_buff, strlen(cPL_buff)) == false)
@@ -149,10 +156,10 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
 
   uint32_t u32L_idx = 0;
   uint8_t u8L_data  = 0;
-  const uint16_t u16L_req_len = strlen(cPL_buff);
+  const uint16_t u16L_req_len = strlen(cPL_buff) + 1;
 
   // Clear echo
-  while (u32L_idx <= u16L_req_len)
+  while (u32L_idx < u16L_req_len)
   {
     usart_get_byte(objPL_store->objP_uart, NULL, 10);
     ++u32L_idx;
@@ -170,6 +177,11 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
   usart_flush(objPL_store->objP_uart);
 
   objPL_this->u32_offset += u32L_idx;
+  
+  if (u32PL_bytes_read)
+  {
+    *u32PL_bytes_read = u32L_idx;
+  }
 
   return 0;
 }
