@@ -14,6 +14,7 @@
 typedef struct
 {
   storage_t obj_vft;
+  uint32_t u32_flash_addr;
 } storage_internal_t;
 
 static storage_internal_t objS_strg_internal;
@@ -25,7 +26,7 @@ static int8_t storage_internal_write(storage_t *objPL_this,
 static int8_t storage_internal_read(storage_t *objPL_this,
   uint8_t *u8PL_buff, uint32_t u32L_bytes_to_read, uint32_t *u32PL_bytes_read);
 
-storage_t *storage_internal_init_static(void)
+storage_t *storage_internal_init_static(uint32_t u32L_flash_start_addr)
 {
   storage_t *objPL_storage = (storage_t*)&objS_strg_internal;
   objPL_storage->u32_offset              = 0;
@@ -34,22 +35,25 @@ storage_t *storage_internal_init_static(void)
   objPL_storage->obj_virtual_table.read  = storage_internal_read;
   objPL_storage->obj_virtual_table.write = storage_internal_write;
 
+  objS_strg_internal.u32_flash_addr = u32L_flash_start_addr;
+
   return objPL_storage;
 }
 
 static int8_t storage_internal_open(storage_t *objPL_this, const char *cPL_file_name, uint8_t u8L_mode)
 {
-  UNUSED(objPL_this);
   UNUSED(cPL_file_name);
-  objPL_this->u8_mode = u8L_mode;
+  objPL_this->u8_mode    = u8L_mode;
+  objPL_this->u32_offset = 0;
+  objPL_this->u32_size   = 0;
   return 0;
 }
 
 static int8_t storage_internal_close(storage_t *objPL_this)
 {
-  UNUSED(objPL_this);
   objPL_this->u8_mode    = 0;
   objPL_this->u32_offset = 0;
+  objPL_this->u32_size   = 0;
   return 0;
 }
 
@@ -62,7 +66,9 @@ static int8_t storage_internal_write(storage_t *objPL_this,
     return -1;
   }
 
-  const int8_t s8L_ret = flash_program_data(objPL_this->u32_offset, u8PL_buff, u32L_buff_size);
+  const storage_internal_t *objPL_internal = (const storage_internal_t*)objPL_this;
+
+  const int8_t s8L_ret = flash_program_data(objPL_internal->u32_flash_addr + objPL_this->u32_offset, u8PL_buff, u32L_buff_size);
   if (s8L_ret == 0)
   {
     objPL_this->u32_offset += u32L_buff_size;
