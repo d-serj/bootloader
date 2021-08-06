@@ -6,7 +6,9 @@
 #ifndef COM_H_
 #define COM_H_
 
-void com_init(void);
+#include "storage.h"
+
+void com_init(storage_t *objPL_storage);
 
 void com_deinit(void);
 

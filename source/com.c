@@ -19,29 +19,42 @@
 enum eComHdlcCommands
 {
   eCmdWriteFile            = 1,
-  eCmdWriteFileFinish      = 2,
-  eComHdlcAnswer_HandShake = 3,
+  eCmdWriteFileSize        = 2,
+  eCmdWriteFileFinish      = 3,
+  eComHdlcAnswer_HandShake = 4,
 };
 
 static TinyFrame tf                = { 0 };
 static usart_instance_t objS_uart4;
-static usart_instance_t objS_uart2;
 static bool bS_is_master_connected = false;
 static bool bS_finished            = false;
+static uint32_t u32SL_size_file    = 0;
+/** Amount of bytes that were written to the storage */
+static uint32_t u32S_bytes_written = 0;
+static storage_t *objPS_storage    = NULL;
 
 static void comhdlc_callback(const uint8_t *u8PL_data, uint16_t u16L_data_size);
 static void comhdlc_send_byte(uint8_t u8L_byte);
 static TF_Result com_listener_handshake(TinyFrame *tf, TF_Msg *msg);
+static TF_Result com_listener_file_size(TinyFrame *objPL_tf, TF_Msg *objPL_msg);
 static TF_Result com_listener_file_write(TinyFrame *tf, TF_Msg *msg);
 
-void com_init(void)
+void com_init(storage_t *objPL_storage)
 {
+  bS_finished            = false;
+  bS_is_master_connected = false;
+  u32SL_size_file        = 0;
+  u32S_bytes_written     = 0;
+
   usart_setup(&objS_uart4, eUART4);
   minihdlc_init(comhdlc_send_byte, comhdlc_callback);
   TF_InitStatic(&tf, TF_SLAVE);
 
   TF_AddTypeListener(&tf, eComHdlcAnswer_HandShake, com_listener_handshake);
+  TF_AddTypeListener(&tf, eCmdWriteFileSize, com_listener_file_size);
   TF_AddTypeListener(&tf, eCmdWriteFile, com_listener_file_write);
+
+  objPS_storage = objPL_storage;
 }
 
 void com_deinit(void)
@@ -69,6 +82,8 @@ bool com_is_master_connected(uint16_t u16L_timeout)
     {
       break;
     }
+
+    com_run();
 
     ++u16L_time;
     delay(1);
@@ -100,45 +115,48 @@ static TF_Result com_listener_handshake(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
   return TF_NEXT;
 }
 
+static TF_Result com_listener_file_size(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
+{
+  if (objPL_msg->type == eCmdWriteFileSize)
+  {
+    storage_open(objPS_storage, "firmware.bin", eStorageModeCreate);
+    u32SL_size_file = *(uint32_t*)objPL_msg->data;
+
+    TF_Respond(objPL_tf, objPL_msg);
+
+    return TF_CLOSE;
+  }
+
+  return TF_NEXT;
+}
+
 static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
-  static bool bSL_started         = false;
-  static uint32_t u32SL_size_file = 0;
-  storage_t *objPL_storage        = storage_sim800_init_static(&objS_uart2, eUART2);
-  TF_Result eL_res                = TF_NEXT;
-  UNUSED(objPL_tf);
+  TF_Result eL_res = TF_NEXT;
+
+  ASSERT(objPL_tf != NULL);
+  ASSERT(objPL_msg != NULL);
 
   if (objPL_msg->type == eCmdWriteFile)
   {
-    if (bSL_started == false)
+    uint32_t u32L_bytes_chunk_written = 0;
+    ASSERT(objPL_msg->len > 0);
+    const int8_t s8L_ret = storage_write(objPS_storage, objPL_msg->data, objPL_msg->len, &u32L_bytes_chunk_written);
+
+    ASSERT(s8L_ret == 0);
+
+    u32S_bytes_written += u32L_bytes_chunk_written;
+
+    if (u32SL_size_file != u32S_bytes_written)
     {
-      storage_open(objPL_storage, "firmware.bin", eStorageModeCreate);
-      u32SL_size_file = *(uint32_t*)objPL_msg->data;
-      bSL_started = true;
+      objPL_msg->len = 0;
+      eL_res         = TF_STAY;
     }
     else
     {
-      uint32_t u32L_bytes_written = 0;
-
-      const int8_t s8L_ret = storage_write(objPL_storage, objPL_msg->data, u32SL_size_file, &u32L_bytes_written);
-
-      ASSERT(s8L_ret == 0);
-      ASSERT(u32L_bytes_written == u32SL_size_file);
-
-      if (u32SL_size_file != u32L_bytes_written)
-      {
-        eL_res = TF_STAY;
-      }
-      else
-      {
-        const int8_t s8L_ret = storage_read(objPL_storage, objPL_msg->data, u32SL_size_file, &u32L_bytes_written);
-
-        ASSERT(s8L_ret == 0);
-
-        storage_close(objPL_storage);
-        bS_finished = true;
-        eL_res      = TF_CLOSE;
-      }
+      storage_close(objPS_storage);
+      bS_finished = true;
+      eL_res      = TF_CLOSE;
     }
 
     TF_Respond(objPL_tf, objPL_msg);
@@ -149,6 +167,7 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 
 bool com_file_write_is_finished(void)
 {
+  com_run();
   return bS_finished;
 }
 
