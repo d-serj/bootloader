@@ -28,8 +28,6 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
 
   objPL_uart->e_instance = eL_uart_num;
 
-  rcc_periph_clock_enable(RCC_AFIO);
-
   if (eL_uart_num == eUART2)
   {
     rcc_periph_clock_enable(RCC_USART2);
@@ -62,6 +60,11 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
 
     objSP_uart4_ring_buff = &objPL_uart->obj_buffer;
   }
+  else
+  {
+    // Other uarts are unsupported!
+    ASSERT(0);
+  }
 
   /* Setup UART parameters. */
   usart_set_baudrate(eL_uart_num, 19200);
@@ -89,16 +92,22 @@ void usart_deinit(usart_instance_t *objPL_uart)
 
   if (eL_uart_num == eUART2)
   {
-    nvic_disable_irq(NVIC_USART2_IRQ);
+	  rcc_periph_reset_pulse(RST_USART2);
     rcc_periph_clock_disable(RCC_USART2);
+    nvic_disable_irq(NVIC_USART2_IRQ);
   }
   else if (eL_uart_num == eUART4)
   {
-    nvic_disable_irq(NVIC_UART4_IRQ);
+    rcc_periph_reset_pulse(RST_UART4);
     rcc_periph_clock_disable(RCC_UART4);
+    nvic_disable_irq(NVIC_UART4_IRQ);
+  }
+  else
+  {
+    ASSERT(0);
   }
 
-  rcc_periph_clock_disable(RCC_AFIO);
+  usart_disable_rx_interrupt(eL_uart_num);
   usart_disable(eL_uart_num);
 }
 
