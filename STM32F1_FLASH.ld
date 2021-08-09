@@ -53,7 +53,7 @@
 MEMORY
 {
   ram (xrw)     : ORIGIN = 0x20000000, LENGTH = 20K
-  rom (rx)      : ORIGIN = 0x8000000, LENGTH = 0x0004000
+  rom (rx)      : ORIGIN = 0x8000000,  LENGTH = 16K
 }
 
 __app_start__ = ORIGIN(rom) + LENGTH(rom);
