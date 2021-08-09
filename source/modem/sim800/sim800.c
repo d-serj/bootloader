@@ -52,10 +52,3 @@ bool sim800_power_off(void)
 
   return true;
 }
-
-void sim800_init(void)
-{
-  //at_command_init(&objS_at_cmd)
-  //at_command_write_send("ATE\r\n", )
-  //Sim80x_SendAtCommand("ATE1\r\n", 200, 1, "\r\nOK\r\n");								          // Turn echo mode on
-}

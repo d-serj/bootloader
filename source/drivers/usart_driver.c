@@ -90,25 +90,41 @@ void usart_deinit(usart_instance_t *objPL_uart)
   const uart_num_t eL_uart_num = objPL_uart->e_instance;
   ASSERT((eL_uart_num == eUART2) || (eL_uart_num == eUART4));
 
+  usart_disable_rx_interrupt(eL_uart_num);
+  usart_disable(eL_uart_num);
+
   if (eL_uart_num == eUART2)
   {
 	  rcc_periph_reset_pulse(RST_USART2);
     rcc_periph_clock_disable(RCC_USART2);
     nvic_disable_irq(NVIC_USART2_IRQ);
+
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
+        GPIO_CNF_INPUT_FLOAT, GPIO_USART2_TX);
+    gpio_clear(GPIOA, GPIO_USART2_TX);
+
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
+        GPIO_CNF_INPUT_FLOAT, GPIO_USART2_RX);
+    gpio_clear(GPIOA, GPIO_USART2_RX);
   }
   else if (eL_uart_num == eUART4)
   {
     rcc_periph_reset_pulse(RST_UART4);
     rcc_periph_clock_disable(RCC_UART4);
     nvic_disable_irq(NVIC_UART4_IRQ);
+
+    gpio_set_mode(GPIOC, GPIO_MODE_INPUT,
+        GPIO_CNF_INPUT_FLOAT, GPIO_UART4_TX);
+    gpio_clear(GPIOC, GPIO_UART4_TX);
+
+    gpio_set_mode(GPIOC, GPIO_MODE_INPUT,
+        GPIO_CNF_INPUT_FLOAT, GPIO_UART4_RX);
+    gpio_clear(GPIOC, GPIO_UART4_RX);
   }
   else
   {
     ASSERT(0);
   }
-
-  usart_disable_rx_interrupt(eL_uart_num);
-  usart_disable(eL_uart_num);
 }
 
 void usart_send_string(const usart_instance_t *objPL_uart, const char *cPL_str)

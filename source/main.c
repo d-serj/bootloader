@@ -31,7 +31,7 @@ static usart_instance_t objS_uart4;
 
 static void clock_setup(void)
 {
-  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_64MHZ]);
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_48MHZ]);
 
   /* Enable GPIOC clock. */
   rcc_periph_clock_enable(RCC_GPIOC);
@@ -47,23 +47,22 @@ static void clock_setup(void)
 
 static void clock_deinit(void)
 {
-  // rcc_periph_reset_pulse(RST_GPIOC);
-  // rcc_periph_reset_pulse(RST_GPIOB);
-  // rcc_periph_reset_pulse(RST_GPIOA);
-  // rcc_periph_clock_disable(RCC_GPIOC);
-  // rcc_periph_clock_disable(RCC_GPIOB);
-  // rcc_periph_clock_disable(RCC_GPIOA);
-  // rcc_periph_reset_pulse(RST_AFIO);
-  // rcc_periph_clock_disable(RCC_AFIO);
-  // rcc_peripheral_disable_clock(&RCC_APB1ENR, RCC_APB1ENR_UART4EN | RCC_APB1ENR_USART2EN);
-  // rcc_peripheral_disable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN);
-  // rcc_osc_off(RCC_HSI);
-  // rcc_osc_off(RCC_PLL);
+  rcc_peripheral_disable_clock(&RCC_APB1ENR, RCC_APB1ENR_UART4EN | RCC_APB1ENR_USART2EN);
+  rcc_peripheral_disable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN);
+  RCC_APB1ENR = 0x00000000;
+  RCC_APB2ENR = 0x00000000;
 
-  RCC_AHBENR &= ~(RCC_AHBENR_CRCEN);
-	RCC_AHBENR &= ~(RCC_AHBENR_CRCEN);
-	RCC_APB2RSTR = 0;
-	RCC_APB1RSTR = 0;
+  /* Reset the RCC_CFGR register */
+  RCC_CFGR = 0x00000000;
+
+  /* Reset the CIR register */
+  RCC_CIR = 0x00000000;
+
+  rcc_osc_on(RCC_HSI);
+  rcc_wait_for_osc_ready(RCC_HSI);
+
+  rcc_osc_off(RCC_PLL);
+  rcc_css_disable();
 }
 
 static void gpio_setup(void)
@@ -102,7 +101,7 @@ int main(void)
   {
     if (image_validate(&objL_image))
     {
-      const int8_t s8L_ret = image_copy(&objL_image, storage_internal_init_static(0x08004000));
+      const int8_t s8L_ret = image_copy(&objL_image, storage_internal_init_static((uint32_t)&__app_start__));
       image_could_start = (s8L_ret == 0);
     }
     else
@@ -123,6 +122,7 @@ int main(void)
 
   com_deinit();
   storage_sim800_deinit();
+  delay(2000);
 
   systick_deinit();
   usart_deinit(&objS_uart2);

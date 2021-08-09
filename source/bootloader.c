@@ -29,7 +29,7 @@ void image_start(uint32_t u32L_vector_addr)
   __disable_irq();
   // Ensure all memory operations are finished before modifing VTOR
   asm("dmb");
-  SCB_VTOR = (uint32_t)objPL_vector;
+  SCB_VTOR = (uint32_t)objPL_vector & 0xFFFFF;
   asm("dsb");
   __enable_irq();
 
