@@ -10,7 +10,6 @@ target_sources(
   utilities/ringbuffer.c
   bootloader.c
   crc32.c
-  com.c
   delay.c
   main.c
   image.c
@@ -19,10 +18,11 @@ target_sources(
   storage_sim800.c
   drivers/usart_driver.c
   drivers/flash.c
-  #drivers/bkp.c
+  drivers/bkp.c
   modem/sim800/sim800.c
+  comhdlc/com.c
   comhdlc/minihdlc.c
-  tinyframe/TinyFrame.c
+  comhdlc/tinyframe/TinyFrame.c
 )
 
 target_include_directories(
