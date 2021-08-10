@@ -8,7 +8,9 @@
 
 #include "storage.h"
 
-void com_init(storage_t *objPL_storage, usart_instance_t *objPL_uart);
+void com_init(usart_instance_t *objPL_uart);
+
+void com_set_storage_to_write_file(storage_t *objPL_storage);
 
 void com_deinit(void);
 

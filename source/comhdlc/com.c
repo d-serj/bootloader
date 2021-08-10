@@ -6,15 +6,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "tinyframe/TinyFrame.h"
-#include "utilities/toolbox.h"
-#include "comhdlc/minihdlc.h"
-#include "drivers/usart_driver.h"
-#include "system/assert.h"
-#include "delay.h"
+#include <utilities/toolbox.h>
+#include <drivers/usart_driver.h>
+#include <system/assert.h>
+#include <delay.h>
+#include <image.h>
 
-#include "storage.h"
-#include "storage_sim800.h"
+#include <storage.h>
+#include <storage_sim800.h>
+
+#include "tinyframe/TinyFrame.h"
+#include "com.h"
+#include "minihdlc.h"
 
 enum eComHdlcCommands
 {
@@ -39,7 +42,7 @@ static TF_Result com_listener_handshake(TinyFrame *tf, TF_Msg *msg);
 static TF_Result com_listener_file_size(TinyFrame *objPL_tf, TF_Msg *objPL_msg);
 static TF_Result com_listener_file_write(TinyFrame *tf, TF_Msg *msg);
 
-void com_init(storage_t *objPL_storage, usart_instance_t *objPL_uart)
+void com_init(usart_instance_t *objPL_uart)
 {
   bS_finished            = false;
   bS_is_master_connected = false;
@@ -54,7 +57,11 @@ void com_init(storage_t *objPL_storage, usart_instance_t *objPL_uart)
   TF_AddTypeListener(&tf, eComHdlcAnswer_HandShake, com_listener_handshake);
   TF_AddTypeListener(&tf, eCmdWriteFileSize, com_listener_file_size);
   TF_AddTypeListener(&tf, eCmdWriteFile, com_listener_file_write);
+}
 
+void com_set_storage_to_write_file(storage_t *objPL_storage)
+{
+  ASSERT(objPL_storage != NULL);
   objPS_storage = objPL_storage;
 }
 
@@ -119,7 +126,7 @@ static TF_Result com_listener_file_size(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 {
   if (objPL_msg->type == eCmdWriteFileSize)
   {
-    storage_open(objPS_storage, "firmware.bin", eStorageModeCreate);
+    storage_open(objPS_storage, IMAGE_NAME, eStorageModeCreate);
     u32SL_size_file = *(uint32_t*)objPL_msg->data;
 
     TF_Respond(objPL_tf, objPL_msg);
