@@ -50,9 +50,9 @@ struct ring_buffer_t
   /** Buffer memory. */
   uint8_t buffer[RING_BUFFER_SIZE];
   /** Index of tail. */
-  ring_buffer_size_t tail_index;
+  volatile ring_buffer_size_t tail_index;
   /** Index of head. */
-  ring_buffer_size_t head_index;
+  volatile ring_buffer_size_t head_index;
 };
 
 /**
