@@ -24,7 +24,7 @@ static uint8_t u8PS_buff[2048] = { 0 };
 
 #ifndef UTEST
 static inline bool image_header_check(const image_hdr_t *objPL_img_hdr) __attribute__((always_inline));
-static bool image_compare_crc32(image_t *objPL_this);
+static bool image_compare_crc32(image_t *objPL_this, uint32_t u32L_crc32);
 #else
 bool image_header_check(const image_hdr_t *objPL_img_hdr);
 bool image_compare_crc32(image_t *objPL_this);
@@ -70,8 +70,8 @@ int8_t image_close(image_t *objPL_this)
   
   const int8_t s8L_ret = storage_close(objPL_this->objP_storage);
   ASSERT(s8L_ret == eStorageOk);
-  objPL_this->objP_storage      = NULL;
-  objPL_this->u32_file_size     = 0;
+  objPL_this->objP_storage  = NULL;
+  objPL_this->u32_file_size = 0;
 
   return s8L_ret;
 }
@@ -91,23 +91,23 @@ bool image_validate(image_t *objPL_this)
     return false;
   }
 
-  return image_compare_crc32(objPL_this);
+  return image_compare_crc32(objPL_this, objPL_this->obj_img_hdr.u32_crc);
 }
 
-bool image_compare_crc32(image_t *objPL_this)
+bool image_compare_crc32(image_t *objPL_this, uint32_t u32L_crc32)
 {
-  uint32_t u32L_file_crc32 = 0;
-  uint32_t u32L_bytes_read = 0;
-  int8_t s8L_ret           = eStorageOk;
-  storage_t *objPL_storage = objPL_this->objP_storage;
+  const uint32_t u32L_buff_size  = ARRAY_SIZE(u8PS_buff);
+  uint32_t u32L_file_crc32       = 0;
+  uint32_t u32L_bytes_read       = 0;
+  int8_t   s8L_ret               = eStorageOk;
+  storage_t *objPL_storage       = objPL_this->objP_storage;
   uint32_t u32L_rest_of_firmware = objPL_this->u32_file_size - sizeof(image_hdr_t);
 
   delay(5);
 
   while ((s8L_ret == eStorageOk) && u32L_rest_of_firmware)
   {
-    const uint32_t u32L_buff_size     = ARRAY_SIZE(u8PS_buff);
-    const uint32_t u32L_bytes_to_read = (u32L_buff_size <= u32L_rest_of_firmware) ? u32L_buff_size : u32L_rest_of_firmware;
+    const uint32_t u32L_bytes_to_read = MIN(u32L_buff_size, u32L_rest_of_firmware);
     s8L_ret = storage_read(objPL_storage, u8PS_buff, u32L_bytes_to_read, &u32L_bytes_read);
     ASSERT(u32L_bytes_read == u32L_bytes_to_read);
 
@@ -120,7 +120,7 @@ bool image_compare_crc32(image_t *objPL_this)
   s8L_ret = storage_close(objPL_storage);
   ASSERT(s8L_ret == eStorageOk);
 
-  return (u32L_file_crc32 == objPL_this->obj_img_hdr.u32_crc);
+  return (u32L_file_crc32 == u32L_crc32);
 }
 
 int8_t image_copy(image_t *objPL_this, storage_t *objPL_dest)
@@ -128,15 +128,15 @@ int8_t image_copy(image_t *objPL_this, storage_t *objPL_dest)
   storage_open(objPL_this->objP_storage, objPL_this->cP_file_name, eStorageModeRead);
   storage_open(objPL_dest, objPL_this->cP_file_name, eStorageModeWrite);
 
-  uint32_t u32L_bytes_read    = 0;
-  int8_t s8L_ret              = 0;
-  uint32_t u32L_bytes_written = 0;
-  uint32_t u32L_rest_of_file  = objPL_this->u32_file_size;
+  const uint32_t u32L_buff_size = ARRAY_SIZE(u8PS_buff);
+  uint32_t u32L_bytes_read      = 0;
+  int8_t   s8L_ret              = 0;
+  uint32_t u32L_bytes_written   = 0;
+  uint32_t u32L_rest_of_file    = objPL_this->u32_file_size;
 
   while ((s8L_ret == eStorageOk) && u32L_rest_of_file)
   {
-    const uint32_t u32L_buff_size     = ARRAY_SIZE(u8PS_buff);
-    const uint32_t u32L_bytes_to_read = (u32L_buff_size <= u32L_rest_of_file) ? u32L_buff_size : u32L_rest_of_file;
+    const uint32_t u32L_bytes_to_read = MIN(u32L_buff_size, u32L_rest_of_file);
     s8L_ret  = storage_read(objPL_this->objP_storage, u8PS_buff, u32L_bytes_to_read, &u32L_bytes_read);
     ASSERT(u32L_bytes_read > 0);
 

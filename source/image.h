@@ -12,6 +12,8 @@
 #include "storage.h"
 #include "img-header.h"
 
+#define IMAGE_NAME  ("firmware.bin")
+
 /** Image struct */
 typedef struct
 {

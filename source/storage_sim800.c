@@ -144,7 +144,7 @@ int8_t sim800_read(storage_t *objPL_this, uint8_t *u8PL_buff, uint32_t u32L_byte
   snprintf(cPL_buff, ARRAY_SIZE(cPL_buff), "AT+FSREAD=%s,%d,%lu,%lu\r\n",
     objPL_store->cP_file_name, u8L_mode, u32L_bytes_to_read, objPL_this->u32_offset);
   usart_send_string(objPL_store->objP_uart, cPL_buff);
-  delay(5);
+  delay(10);
 
 /*
   if (storage_compare_echo(objPL_this, cPL_buff, strlen(cPL_buff)) == false)

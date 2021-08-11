@@ -9,6 +9,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/vector.h>
+#include <libopencm3/stm32/f1/bkp.h>
 
 #include "bootloader.h"
 #include "img-header.h"
@@ -18,10 +19,11 @@
 #include "modem/sim800/sim800.h"
 #include "utilities/toolbox.h"
 #include "drivers/flash.h"
+#include "drivers/bkp.h"
 #include "storage_sim800.h"
 #include "memory_map.h"
 #include "image.h"
-#include "com.h"
+#include "comhdlc/com.h"
 
 #include "storage.h"
 #include "storage_internal.h"
@@ -43,10 +45,14 @@ static void clock_setup(void)
   rcc_periph_clock_enable(RCC_GPIOA);
 
   rcc_periph_clock_enable(RCC_AFIO);
+
+  bkp_init();
 }
 
 static void clock_deinit(void)
 {
+  bkp_deinit();
+
   rcc_peripheral_disable_clock(&RCC_APB1ENR, RCC_APB1ENR_UART4EN | RCC_APB1ENR_USART2EN);
   rcc_peripheral_disable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN);
   RCC_APB1ENR = 0x00000000;
@@ -79,6 +85,9 @@ static void gpio_setup(void)
 
 int main(void)
 {
+  bool image_could_start = false;
+  const uint32_t u32L_main_app_addr = (uint32_t)&__app_start__;
+
   clock_setup();
   systick_init(com_systick_clbk, NULL);
   gpio_setup();
@@ -86,23 +95,30 @@ int main(void)
   usart_setup(&objS_uart2, eUART2);
   usart_setup(&objS_uart4, eUART4);
 
-  storage_t *objPL_storage_sim800 = storage_sim800_init_static(&objS_uart2);
-  com_init(objPL_storage_sim800, &objS_uart4);
+  // 1. Check flags
+  const uint16_t u16L_main_app_cmd = bkp_read(BKP_DR1);
 
+  // 2. Try to connect to the host PC. Wait 10 seconds for a connection
+  com_init(&objS_uart4);
   if (com_is_master_connected(1000))
   {
+    storage_t *const objPL_storage_sim800 = storage_sim800_init_static(&objS_uart2);
+    com_set_storage_to_write_file(objPL_storage_sim800);
+
     while (com_file_write_is_finished() == false)
       ;
   }
 
-  bool image_could_start = false;
+  // 3. Load app or go to update
   image_t objL_image = { 0 };
-  if (image_open(&objL_image, objPL_storage_sim800, "firmware.bin") == 0)
+
+  storage_t *const objPL_storage_sim800 = storage_sim800_init_static(&objS_uart2);
+  if (image_open(&objL_image, objPL_storage_sim800, IMAGE_NAME) == 0)
   {
     if (image_validate(&objL_image))
     {
-      const int8_t s8L_ret = image_copy(&objL_image, storage_internal_init_static((uint32_t)&__app_start__));
-      image_could_start = (s8L_ret == 0);
+      const int8_t s8L_ret = image_copy(&objL_image, storage_internal_init_static(u32L_main_app_addr));
+      image_could_start    = (s8L_ret == 0);
     }
     else
     {
@@ -110,16 +126,7 @@ int main(void)
     }
   }
 
-  // 1. Check flags
-  // 2. Load app or go to update
-  // 3. Get image header
-  // 4. Image validate header
-  // 5. Check CRC32 for the whole file
-  // 6. Download image from the beginning to flash it
-  // 7. Image flash
-  // 8. Check CRC32
-  // 6. Image start
-
+  // Deinit all the stuff
   com_deinit();
   storage_sim800_deinit();
   delay(2000);
