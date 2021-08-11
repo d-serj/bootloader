@@ -125,6 +125,7 @@ static TF_Result com_listener_file_size(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
     storage_open(objPS_storage, IMAGE_NAME, eStorageModeCreate);
     u32SL_size_file = *(uint32_t*)objPL_msg->data;
 
+    objPL_msg->len = 0;
     TF_Respond(objPL_tf, objPL_msg);
 
     return TF_CLOSE;
@@ -152,8 +153,7 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
 
     if (u32SL_size_file != u32S_bytes_written)
     {
-      objPL_msg->len = 0;
-      eL_res         = TF_STAY;
+      eL_res = TF_STAY;
     }
     else
     {
@@ -162,6 +162,7 @@ static TF_Result com_listener_file_write(TinyFrame *objPL_tf, TF_Msg *objPL_msg)
       eL_res      = TF_CLOSE;
     }
 
+    objPL_msg->len = 0;
     TF_Respond(objPL_tf, objPL_msg);
   }
 
