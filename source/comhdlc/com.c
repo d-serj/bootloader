@@ -17,7 +17,6 @@
 
 #include "tinyframe/TinyFrame.h"
 #include "com.h"
-#include "minihdlc.h"
 
 enum eComHdlcCommands
 {
@@ -36,8 +35,6 @@ static uint32_t u32SL_size_file    = 0;
 static uint32_t u32S_bytes_written = 0;
 static storage_t *objPS_storage    = NULL;
 
-static void comhdlc_callback(const uint8_t *u8PL_data, uint16_t u16L_data_size);
-static void comhdlc_send_byte(uint8_t u8L_byte);
 static TF_Result com_listener_handshake(TinyFrame *tf, TF_Msg *msg);
 static TF_Result com_listener_file_size(TinyFrame *objPL_tf, TF_Msg *objPL_msg);
 static TF_Result com_listener_file_write(TinyFrame *tf, TF_Msg *msg);
@@ -51,7 +48,6 @@ void com_init(usart_instance_t *objPL_uart)
 
   objPS_uart4 = objPL_uart;
 
-  minihdlc_init(comhdlc_send_byte, comhdlc_callback);
   TF_InitStatic(&tf, TF_SLAVE);
 
   TF_AddTypeListener(&tf, eComHdlcAnswer_HandShake, com_listener_handshake);
@@ -75,7 +71,7 @@ void com_run(void)
   uint8_t u8L_byte = 0;
   while (usart_get_byte(objPS_uart4, &u8L_byte, 1))
   {
-    minihdlc_char_receiver(u8L_byte);
+    TF_AcceptChar(&tf, u8L_byte);
   }
 }
 
@@ -178,19 +174,12 @@ bool com_file_write_is_finished(void)
   return bS_finished;
 }
 
-static void comhdlc_send_byte(uint8_t u8L_byte)
+void TF_WriteImpl(TinyFrame *tf, const uint8_t *u8PL_buff, uint32_t u32L_len)
 {
-  usart_send_raw(objPS_uart4, &u8L_byte, 1);
-}
-
-static void comhdlc_callback(const uint8_t *u8PL_data, uint16_t u16L_data_size)
-{
-  ASSERT(u16L_data_size <= TF_MAX_PAYLOAD_RX);
-  TF_Accept(&tf, u8PL_data, u16L_data_size);
-}
-
-void TF_WriteImpl(TinyFrame *tf, const uint8_t *buff, uint32_t len)
-{
-  ASSERT(len <= MINIHDLC_MAX_FRAME_LENGTH);
-  minihdlc_send_frame(buff, len);
+  ASSERT(u32L_len < TF_SENDBUF_LEN);
+  
+  if (objPS_uart4)
+  {
+    usart_send_raw(objPS_uart4, u8PL_buff, u32L_len);
+  }
 }
