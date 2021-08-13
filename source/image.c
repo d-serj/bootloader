@@ -11,13 +11,13 @@
 #include <system/assert.h>
 
 #include <utilities/toolbox.h>
+#include <utilities/crc32.h>
 #include <delay.h>
 
-#include "crc32.h"
 
+#include "storage/storage_sim800.h"
 #include "img-header.h"
 #include "image.h"
-#include "storage_sim800.h"
 
 // STM32F105 has flash banks with size 2048 bytes each
 static uint8_t u8PS_buff[2048] = { 0 };

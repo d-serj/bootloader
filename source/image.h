@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "storage.h"
+#include "storage/storage.h"
 #include "img-header.h"
 
 #define IMAGE_NAME  ("firmware.bin")

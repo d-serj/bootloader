@@ -12,8 +12,8 @@
 #include <delay.h>
 #include <image.h>
 
-#include <storage.h>
-#include <storage_sim800.h>
+#include <storage/storage.h>
+#include <storage/storage_sim800.h>
 
 #include "tinyframe/TinyFrame.h"
 #include "com.h"

@@ -8,6 +8,6 @@
 
 #include <stdint.h>
 
-void image_start(uint32_t u32L_vector_addr) __attribute__((noreturn));
+void bootloader(void);
 
 #endif // BOOTLOADER_H_

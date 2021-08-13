@@ -7,15 +7,16 @@ add_executable(${TARGET_NAME} "")
 target_sources(
   ${TARGET_NAME} PRIVATE
   system/assert.c
+  system/system.c
   utilities/ringbuffer.c
+  utilities/crc32.c
   bootloader.c
-  crc32.c
   delay.c
   main.c
   image.c
-  storage.c
-  storage_internal.c
-  storage_sim800.c
+  storage/storage.c
+  storage/storage_internal.c
+  storage/storage_sim800.c
   drivers/usart_driver.c
   drivers/flash.c
   drivers/bkp.c

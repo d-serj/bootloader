@@ -6,7 +6,7 @@
 #ifndef COM_H_
 #define COM_H_
 
-#include "storage.h"
+#include <storage/storage.h>
 
 void com_init(usart_instance_t *objPL_uart);
 
