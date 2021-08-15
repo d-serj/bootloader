@@ -50,5 +50,8 @@ bool sim800_power_off(void)
     return false;
   }
 
+  // Wait till SIM80 will power down
+  delay(2000);
+
   return true;
 }
