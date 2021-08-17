@@ -63,7 +63,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binary
-        path: build/$BUILD_TYPE/bootloader.bin
+        path: /home/runner/work/bootloader/bootloader/build/$BUILD_TYPE/bootloader.bin
     
     - name: Display structure of downloaded files
       run: ls -R
