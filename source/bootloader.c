@@ -30,7 +30,7 @@ static usart_instance_t objS_uart2;
 static usart_instance_t objS_uart4;
 
 static void image_start(uint32_t u32L_vector_addr) __attribute__((noreturn));
-static bool image_flash(image_t *objPL_image);
+static bool image_flash(image_t *objPL_image, storage_t *objPL_src, storage_t *objPL_dst);
 
 static inline __attribute__((always_inline)) void __set_MSP(volatile uint32_t topOfMainStack)
 {
@@ -41,8 +41,8 @@ static inline __attribute__((always_inline)) void __set_MSP(volatile uint32_t to
 void bootloader(void)
 {
   const uint32_t u32L_main_app_addr = (uint32_t)&__app_start__;
-  bool bL_image_could_start = false;
-  image_t objL_image        = { 0 };
+  bool bL_image_could_start         = false;
+  image_t objL_image                = { 0 };
 
   system_init();
   systick_init(com_systick_clbk, NULL);
@@ -50,17 +50,29 @@ void bootloader(void)
   usart_setup(&objS_uart2, eUART2);
   usart_setup(&objS_uart4, eUART4);
 
-  // 1. Check commands from the main app
+  // 1. Check main app stored on internal flash
+  storage_t *objPL_internal_flash = storage_internal_init_static(u32L_main_app_addr);
+  if ((image_open(&objL_image, objPL_internal_flash, IMAGE_NAME) == 0)
+    && image_validate(&objL_image))
+  {
+    bL_image_could_start = true;
+  }
+
+  // 2. Check commands from the main app
   const uint16_t u16L_main_app_cmd = bkp_read(BKP_DR1);
 
-  // 2. Go to update if command
+  // 3. Go to update if command
   if (u16L_main_app_cmd == eInterCom_Bootload)
   {
-    bL_image_could_start = image_flash(&objL_image);
-  } // 3. Try to connect to the host PC. Wait 1 seconds for a connection
+    image_close(&objL_image);
+    storage_t *objPL_src = storage_sim800_init_static(&objS_uart2);
+    bL_image_could_start = image_flash(&objL_image, objPL_src, objPL_internal_flash);
+  }
+  // 4. Try to connect to the host PC. Wait 1 seconds for a connection
   else
   {
     com_init(&objS_uart4);
+    // If Host PC is connected received the file and write it to external storage
     if (com_is_master_connected(1000))
     {
       storage_t *const objPL_storage_sim800 = storage_sim800_init_static(&objS_uart2);
@@ -68,11 +80,12 @@ void bootloader(void)
       // Currently supported only file transferring
       while (com_file_write_is_finished() == false)
         ;
+
+      image_close(&objL_image);
+      bL_image_could_start = image_flash(&objL_image, objPL_storage_sim800, objPL_internal_flash);
     }
 
     com_deinit();
-
-    bL_image_could_start = image_flash(&objL_image);
   }
 
   // Deinit all the stuff
@@ -88,15 +101,14 @@ void bootloader(void)
   }
 }
 
-static bool image_flash(image_t *objPL_image)
+static bool image_flash(image_t *objPL_image, storage_t *objPL_src, storage_t *objPL_dst)
 {
-  storage_t *const objPL_storage_sim800 = storage_sim800_init_static(&objS_uart2);
-  bool bL_image_could_start             = false;
-  if (image_open(objPL_image, objPL_storage_sim800, IMAGE_NAME) == 0)
+  bool bL_image_could_start = false;
+  if (image_open(objPL_image, objPL_src, IMAGE_NAME) == 0)
   {
     if (image_validate(objPL_image))
     {
-      const int8_t s8L_ret = image_copy(objPL_image, storage_internal_init_static(u32L_main_app_addr));
+      const int8_t s8L_ret = image_copy(objPL_image, objPL_dst);
       bL_image_could_start = (s8L_ret == 0);
     }
     else
