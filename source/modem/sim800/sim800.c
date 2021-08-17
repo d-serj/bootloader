@@ -41,17 +41,16 @@ bool sim800_power_off(void)
   gpio_clear(SIM800_PWR_KEY_GPIO_Port, SIM800_PWR_KEY_Pin);
   delay(10);
 
-  if ((!!gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin)) == false)
+  // Hard power down if still powered on
+  if (gpio_get(GSM_STATUS_GPIO_Port, GSM_STATUS_Pin))
   {
     gpio_clear(SIM800_PWR_OFF_GPIO_Port, SIM800_PWR_OFF_Pin);
   }
   else
   {
-    return false;
+    // Wait till SIM80 will power down
+    delay(2000);
   }
-
-  // Wait till SIM80 will power down
-  delay(2000);
 
   return true;
 }
