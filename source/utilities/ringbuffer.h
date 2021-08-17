@@ -114,7 +114,7 @@ inline uint8_t ring_buffer_is_empty(ring_buffer_t *buffer)
   return (buffer->head_index == buffer->tail_index);
 }
 
-inline void ring_buffer_flush(ring_buffer_t *buffer)
+static inline void ring_buffer_flush(ring_buffer_t *buffer)
 {
   buffer->head_index = buffer->tail_index;
 }
