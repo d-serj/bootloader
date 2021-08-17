@@ -66,7 +66,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binary
-        path: ${{ env.buildDir }}/bootloader.bin
+        path: ${{ env.buildDir }}/Release/bootloader.bin
     
     - name: Display structure of downloaded files
       run: ls -R
