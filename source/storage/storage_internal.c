@@ -91,7 +91,9 @@ static int8_t storage_internal_read(storage_t *objPL_this,
     return -1;
   }
 
-  flash_read_data(objPL_this->u32_offset, u32L_bytes_to_read, u8PL_buff);
+  const storage_internal_t *objPL_internal = (const storage_internal_t*)objPL_this;
+
+  flash_read_data(objPL_internal->u32_flash_addr + objPL_this->u32_offset, u32L_bytes_to_read, u8PL_buff);
   objPL_this->u32_offset += u32L_bytes_to_read;
 
   if (u32PL_bytes_read)
