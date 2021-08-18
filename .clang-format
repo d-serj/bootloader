@@ -1,0 +1,39 @@
+---
+AlignConsecutiveAssignments:         AcrossComments
+AlignConsecutiveMacros:              AcrossEmptyLinesAndComments
+AlignTrailingComments:               true
+AllowShortBlocksOnASingleLine:       Never
+AllowShortCaseLabelsOnASingleLine:   false
+AllowShortEnumsOnASingleLine:        false
+AllowShortFunctionsOnASingleLine:    None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine:        false
+
+BreakBeforeBraces:                   Allman
+BreakBeforeTernaryOperators:         true
+
+IncludeBlocks:                       Preserve
+IndentCaseBlocks:                    false
+IndentCaseLabels:                    false
+IndentExternBlock:                   NoIndent
+IndentGotoLabels:                    false
+IndentPPDirectives:                  None
+IndentWidth:                         2
+IndentWrappedFunctionNames:          true
+
+Language:                            Cpp
+
+PointerAlignment:                    Right
+
+ReflowComments:                      true
+
+SpaceBeforeAssignmentOperators:      true
+SpaceBeforeParens:                   ControlStatements
+SpaceBeforeSquareBrackets:           false
+SpacesInCStyleCastParentheses:       false
+SpacesInConditionalStatement:        false
+SpacesInContainerLiterals:           true
+
+TabWidth:                            2
+
+UseTab:                              Never
