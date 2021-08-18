@@ -11,6 +11,9 @@ AllowShortLoopsOnASingleLine:        false
 
 BreakBeforeBraces:                   Allman
 BreakBeforeTernaryOperators:         true
+BreakBeforeBinaryOperators:          NonAssignment
+
+ColumnLimit:                         0
 
 IncludeBlocks:                       Preserve
 IndentCaseBlocks:                    false
