@@ -46,11 +46,9 @@ bool sim800_power_off(void)
   {
     gpio_clear(SIM800_PWR_OFF_GPIO_Port, SIM800_PWR_OFF_Pin);
   }
-  else
-  {
-    // Wait till SIM80 will power down
-    delay(2000);
-  }
+  
+  // Wait till SIM80 will power down
+  delay(2000);
 
   return true;
 }
