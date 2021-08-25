@@ -12,8 +12,8 @@ void led_cpu_init(void);
 
 void led_cpu_deinit(void);
 
-void led_cpu_indicate_error(void);
+void led_cpu_indicate_start(void);
 
-void led_cpu_indicate_success(void);
+void led_cpu_indicate_error(void);
 
 #endif // LED_H_
