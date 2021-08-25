@@ -15,6 +15,7 @@
 #include "system/system.h"
 #include "drivers/usart_driver.h"
 #include "drivers/bkp.h"
+#include "drivers/led.h"
 #include "comhdlc/com.h"
 #include "delay.h"
 #include "image.h"
@@ -49,6 +50,10 @@ void bootloader(void)
 
   usart_setup(&objS_uart2, eUART2);
   usart_setup(&objS_uart4, eUART4);
+
+  led_cpu_init();
+
+  led_cpu_indicate_start();
 
   // 1. Check main app stored on internal flash
   storage_t *objPL_internal_flash = storage_internal_init_static(u32L_main_app_addr);
@@ -88,6 +93,8 @@ void bootloader(void)
     com_deinit();
   }
 
+
+  led_cpu_deinit();
   // Deinit all the stuff
   storage_sim800_deinit();
   systick_deinit();
@@ -98,6 +105,10 @@ void bootloader(void)
   if (bL_image_could_start)
   {
     image_start(objL_image.obj_img_hdr.u32_vector_addr);
+  }
+  else
+  {
+    led_cpu_indicate_error();
   }
 }
 
