@@ -23,6 +23,13 @@
 #define INTER (3*ELEMENT_TIME)
 #define WORD (7*ELEMENT_TIME)
 
+typedef struct
+{
+  const uint16_t *u16P_freq_arr;
+  uint16_t u16_freq_arr_size;
+  uint16_t u16_idx;
+} led_animation_t;
+
 static void led_timer_callback(void *PL_ctx);
 
 static const uint16_t u16PL_frequency_sequence[] =
@@ -35,7 +42,7 @@ static const uint16_t u16PL_frequency_sequence[] =
 
 void led_cpu_init(void)
 {
-  timer_init(led_timer_callback, NULL);
+  timer_init();
 }
 
 void led_cpu_deinit(void)
@@ -45,9 +52,7 @@ void led_cpu_deinit(void)
 
 void led_cpu_indicate_start(void)
 {
-  timer_init(led_timer_callback, u16PL_frequency_sequence);
-
-
+  
 }
 
 void led_cpu_indicate_error(void)
@@ -57,21 +62,22 @@ void led_cpu_indicate_error(void)
 
 void led_cpu_indicate_success(void)
 {
-
+  timer_start(led_timer_callback, (void*)u16PL_frequency_sequence);
 }
 
 static void led_timer_callback(void *PL_ctx)
 {
-  static uint8_t u8SL_i = 0;
+  led_animation_t *objPL_animation = (led_animation_t*)PL_ctx;
 
-  timer_change_period(u16PL_frequency_sequence[u8SL_i]);
+  timer_change_period(objPL_animation->u16P_freq_arr[objPL_animation->u16_idx]);
 
   gpio_toggle(CPU_STATUS_GPIO_Port, CPU_STATUS_Pin);
 
-  ++u8SL_i;
+  objPL_animation->u16_idx++;
 
-  if (u8SL_i == ARRAY_SIZE(u16PL_frequency_sequence))
+  if (objPL_animation->u16_idx == objPL_animation->u16_freq_arr_size)
   {
-    u8SL_i = 0;
+    objPL_animation->u16_idx = 0;
+    timer_stop();
   }
 }
