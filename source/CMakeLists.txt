@@ -20,6 +20,8 @@ target_sources(
   drivers/usart_driver.c
   drivers/flash.c
   drivers/bkp.c
+  drivers/timer.c
+  drivers/led.c
   modem/sim800/sim800.c
   comhdlc/com.c
   comhdlc/tinyframe/TinyFrame.c
