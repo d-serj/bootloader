@@ -47,8 +47,17 @@ storage_t *storage_sim800_init_static(usart_instance_t *objPL_uart)
   objPL_storage->obj_virtual_table.write = sim800_write;
 
   sim800_power_on();
+  // Synchronize baudrate
+  usart_send_string(objS_stor_sim800.objP_uart, "AT\r\n");
+  delay(10);
+  usart_send_string(objS_stor_sim800.objP_uart, "AT\r\n");
+  delay(10);
+  usart_send_string(objS_stor_sim800.objP_uart, "AT\r\n");
+  delay(10);
+  usart_flush(objS_stor_sim800.objP_uart);
+
   usart_send_string(objS_stor_sim800.objP_uart, "ATE1\r\n");
-  delay(1000);
+  delay(10);
   usart_flush(objS_stor_sim800.objP_uart);
 
   return objPL_storage;
