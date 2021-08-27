@@ -67,11 +67,12 @@ void usart_setup(usart_instance_t *objPL_uart, uart_num_t eL_uart_num)
   }
 
   /* Setup UART parameters. */
-  usart_set_baudrate(eL_uart_num, 19200);
+  usart_set_baudrate(eL_uart_num, 38400);
   usart_set_databits(eL_uart_num, 8);
-  usart_set_stopbits(eL_uart_num, USART_STOPBITS_1);
-  usart_set_mode(eL_uart_num, USART_MODE_TX_RX);
   usart_set_parity(eL_uart_num, USART_PARITY_NONE);
+  usart_set_stopbits(eL_uart_num, USART_STOPBITS_1);
+
+  usart_set_mode(eL_uart_num, USART_MODE_TX_RX);
   usart_set_flow_control(eL_uart_num, USART_FLOWCONTROL_NONE);
 
   /* Enable USART Receive interrupt. */
