@@ -93,9 +93,14 @@ void bootloader(void)
     com_deinit();
   }
 
+  if (!bL_image_could_start)
+  {
+    led_cpu_indicate_error();
+    delay(1000);
+  }
 
-  led_cpu_deinit();
   // Deinit all the stuff
+  led_cpu_deinit();
   storage_sim800_deinit();
   systick_deinit();
   usart_deinit(&objS_uart2);
@@ -105,10 +110,6 @@ void bootloader(void)
   if (bL_image_could_start)
   {
     image_start(objL_image.obj_img_hdr.u32_vector_addr);
-  }
-  else
-  {
-    led_cpu_indicate_error();
   }
 }
 
