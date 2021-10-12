@@ -40,6 +40,11 @@ target_link_libraries(
   libopencm3
 )
 
+set_target_properties(
+  ${TARGET_NAME} PROPERTIES
+  LINK_DEPENDS "${LINKER_SCRIPT}"
+)
+
 # Show size of the output binary
 add_custom_command(
   TARGET ${TARGET_NAME} 
