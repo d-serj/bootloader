@@ -8,7 +8,9 @@ cmake_minimum_required (VERSION 3.14)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/toolchain/arm-gcc-toolchain.cmake
   CACHE FILEPATH "CMake ARM GCC toolchain file" FORCE)
 
-set(CMAKE_BUILD_PARALLEL_LEVEL 8)
+include(ProcessorCount)
+ProcessorCount(PROCESSORS_NUM)
+set(CMAKE_BUILD_PARALLEL_LEVEL ${PROCESSORS_NUM})
 
 set(TARGET_NAME "bootloader")
 set(DEVICE stm32f105rct)
@@ -53,7 +55,7 @@ add_link_options(
 
 message(STATUS "BUILD_TYPE:               :" ${CMAKE_BUILD_TYPE})
 message(STATUS "TARGET_COMPILE_OPTIONS    :" ${TARGET_COMPILE_OPTIONS})
-message(STATUS "TARGET_DEFINITION_OPTIONS :" ${TARGET_COMPILE_OPTIONS})
+message(STATUS "TARGET_DEFINITION_OPTIONS :" ${TARGET_DEFINITION_OPTIONS})
 message(STATUS "TARGET_LINK_OPTIONS       :" ${TARGET_LINK_OPTIONS})
 
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
@@ -95,3 +97,4 @@ ExternalProject_Add(
   ALWAYS            TRUE
   DEPENDS           ${TARGET_NAME}
 )
+
